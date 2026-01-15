@@ -159,7 +159,7 @@ export default function Home() {
         <nav className="flex-1 px-2">
           <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors mb-1">
             <LayoutGrid className="w-5 h-5" />
-            <span className="font-semibold">Dashboard</span>
+            <span className="font-semibold">Bookings</span>
           </button>
           <button className="w-full flex items-center gap-3 px-4 py-3 bg-red-500 text-white rounded-lg transition-colors mb-1">
             <Calendar className="w-5 h-5" />
