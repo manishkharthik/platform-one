@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../app/generated/prisma"
@@ -11,10 +5,67 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-// ENUMS
+model User {
+  id            String       @id @default(uuid())
+  name          String
+  email         String       @unique
+  role          UserRole
+  tier          LoyaltyTier?
+  createdAt     DateTime     @default(now())
+  bookings      Booking[]
+  eventsCreated Event[]      @relation("CreatedEvents")
+}
+
+model Event {
+  id          String      @id @default(uuid())
+  name        String
+  start       DateTime
+  end         DateTime
+  location    String
+  minTier     LoyaltyTier
+  createdAt   DateTime    @default(now())
+  createdById String
+  bookings    Booking[]
+  createdBy   User        @relation("CreatedEvents", fields: [createdById], references: [id])
+  questions   Question[]
+}
+
+model Question {
+  id         String             @id @default(uuid())
+  text       String
+  type       QuestionType
+  options    String[]
+  targetRole QuestionTargetRole
+  eventId    String
+  answers    Answer[]
+  event      Event              @relation(fields: [eventId], references: [id])
+}
+
+model Booking {
+  id            String      @id @default(uuid())
+  createdAt     DateTime    @default(now())
+  roleAtBooking BookingRole
+  userId        String
+  eventId       String
+  answers       Answer[]
+  event         Event       @relation(fields: [eventId], references: [id])
+  user          User        @relation(fields: [userId], references: [id])
+
+  @@unique([userId, eventId])
+}
+
+model Answer {
+  id         String   @id @default(uuid())
+  value      String
+  bookingId  String
+  questionId String
+  booking    Booking  @relation(fields: [bookingId], references: [id])
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@unique([bookingId, questionId])
+}
 
 enum UserRole {
   PARTICIPANT
@@ -43,82 +94,4 @@ enum LoyaltyTier {
   SILVER
   GOLD
   PLATINUM
-}
-
-// MODELS
-
-model User {
-  id        String       @id @default(uuid())
-  name      String
-  email     String       @unique
-  role      UserRole
-  tier      LoyaltyTier?
-  createdAt DateTime     @default(now())
-
-  // relations
-  bookings      Booking[]
-  eventsCreated Event[]   @relation("CreatedEvents")
-}
-
-model Event {
-  id        String      @id @default(uuid())
-  name      String
-  start     DateTime
-  end       DateTime
-  location  String
-  minTier   LoyaltyTier
-  createdAt DateTime    @default(now())
-
-  // relations
-  createdById String
-  createdBy   User   @relation("CreatedEvents", fields: [createdById], references: [id])
-
-  questions Question[]
-  bookings  Booking[]
-}
-
-model Question {
-  id         String             @id @default(uuid())
-  text       String
-  type       QuestionType
-  options    String[]
-  targetRole QuestionTargetRole
-
-  // relations
-  eventId String
-  event   Event    @relation(fields: [eventId], references: [id])
-  answers Answer[]
-}
-
-model Booking {
-  id            String      @id @default(uuid())
-  createdAt     DateTime    @default(now())
-  roleAtBooking BookingRole
-
-  // relations
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  eventId String
-  event   Event  @relation(fields: [eventId], references: [id])
-
-  answers Answer[]
-
-  @@unique([userId, eventId]) // prevents double booking
-}
-
-//////////////////////////////////////////////////////
-
-model Answer {
-  id    String @id @default(uuid())
-  value String
-
-  // relations
-  bookingId String
-  booking   Booking @relation(fields: [bookingId], references: [id])
-
-  questionId String
-  question   Question @relation(fields: [questionId], references: [id])
-
-  @@unique([bookingId, questionId]) // one answer per question per booking
 }
