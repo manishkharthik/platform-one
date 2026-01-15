@@ -1,272 +1,365 @@
-'use client';
+import Link from "next/link";
+import {
+  Calendar,
+  Users,
+  MessageSquare,
+  Clock,
+  CheckCircle,
+  Zap,
+} from "lucide-react";
 
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Search, Bell, Menu, Plus, LayoutGrid, Calendar, MessageSquare, ChevronDown } from 'lucide-react';
-
-type Event = {
-  id: number;
-  title: string;
-  date: number;
-  category: 'workshops' | 'counseling' | 'community' | 'volunteering';
-};
-
-const events: Event[] = [
-  { id: 1, title: 'Call with Coord.', date: 6, category: 'workshops' },
-  { id: 2, title: 'Community Park', date: 8, category: 'community' },
-  { id: 3, title: 'Counseling Session', date: 13, category: 'counseling' },
-  { id: 4, title: 'Orientation Hub', date: 14, category: 'workshops' },
-  { id: 5, title: 'Layout Review', date: 16, category: 'workshops' },
-  { id: 6, title: 'Service Layout', date: 21, category: 'community' },
-  { id: 7, title: 'Participant Orientation', date: 23, category: 'counseling' },
-  { id: 8, title: 'Volunteering', date: 23, category: 'volunteering' },
-  { id: 9, title: 'Weekend Workshop', date: 25, category: 'workshops' },
-  { id: 10, title: 'Mentorship Call', date: 28, category: 'counseling' },
-  { id: 11, title: 'Staff Meeting', date: 31, category: 'community' },
-];
-
-const categories = [
-  { name: 'Workshops', color: 'bg-orange-100 text-orange-700', dotColor: 'bg-orange-500' },
-  { name: 'Counseling', color: 'bg-blue-100 text-blue-700', dotColor: 'bg-blue-500' },
-  { name: 'Community', color: 'bg-green-100 text-green-700', dotColor: 'bg-green-500' },
-  { name: 'Volunteering', color: 'bg-purple-100 text-purple-700', dotColor: 'bg-purple-500' },
-];
-
-const categoryStyles = {
-  workshops: 'bg-orange-100 text-orange-700 border-orange-200',
-  counseling: 'bg-blue-100 text-blue-700 border-blue-200',
-  community: 'bg-green-100 text-green-700 border-green-200',
-  volunteering: 'bg-purple-100 text-purple-700 border-purple-200',
-};
-
-export default function Home() {
-  const [currentMonth] = useState('January 2025');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
-  const daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-  
-  // January 2025 calendar data (starting with December 30, 2024 to fill the grid)
-  const calendarDays = [
-    { day: 30, isCurrentMonth: false },
-    { day: 31, isCurrentMonth: false },
-    { day: 1, isCurrentMonth: true },
-    { day: 2, isCurrentMonth: true },
-    { day: 3, isCurrentMonth: true },
-    { day: 4, isCurrentMonth: true },
-    { day: 5, isCurrentMonth: true },
-    { day: 6, isCurrentMonth: true },
-    { day: 7, isCurrentMonth: true },
-    { day: 8, isCurrentMonth: true },
-    { day: 9, isCurrentMonth: true },
-    { day: 10, isCurrentMonth: true },
-    { day: 11, isCurrentMonth: true },
-    { day: 12, isCurrentMonth: true },
-    { day: 13, isCurrentMonth: true },
-    { day: 14, isCurrentMonth: true },
-    { day: 15, isCurrentMonth: true },
-    { day: 16, isCurrentMonth: true },
-    { day: 17, isCurrentMonth: true },
-    { day: 18, isCurrentMonth: true },
-    { day: 19, isCurrentMonth: true },
-    { day: 20, isCurrentMonth: true },
-    { day: 21, isCurrentMonth: true },
-    { day: 22, isCurrentMonth: true },
-    { day: 23, isCurrentMonth: true },
-    { day: 24, isCurrentMonth: true },
-    { day: 25, isCurrentMonth: true },
-    { day: 26, isCurrentMonth: true },
-    { day: 27, isCurrentMonth: true },
-    { day: 28, isCurrentMonth: true },
-    { day: 29, isCurrentMonth: true },
-    { day: 30, isCurrentMonth: true },
-    { day: 31, isCurrentMonth: true },
-    { day: 1, isCurrentMonth: false },
-    { day: 2, isCurrentMonth: false },
-  ];
-
-  const getEventsForDay = (day: number, isCurrentMonth: boolean) => {
-    if (!isCurrentMonth) return [];
-    return events.filter(event => event.date === day);
-  };
-
+export default function LandingPage() {
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 bg-white border-r border-gray-200 flex flex-col overflow-hidden`}>
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-lg">UnityCalendar</span>
-          </div>
-        </div>
-
-        {/* User Profile */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-xl">
-              👤
-            </div>
-            <div className="flex-1">
-              <div className="font-bold text-sm">Walter Sullivan</div>
-              <div className="text-xs text-gray-500 uppercase font-medium">Participant</div>
-            </div>
-          </div>
-        </div>
-
-        {/* New Request Button */}
-        <div className="p-4">
-          <button className="w-full flex items-center justify-center gap-2 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-            <Plus className="w-4 h-4" />
-            <span className="font-bold">New Request</span>
-          </button>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 px-2">
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors mb-1">
-            <LayoutGrid className="w-5 h-5" />
-            <span className="font-semibold">Dashboard</span>
-          </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 bg-red-500 text-white rounded-lg transition-colors mb-1">
-            <Calendar className="w-5 h-5" />
-            <span className="font-semibold">Calendar</span>
-          </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors relative">
-            <MessageSquare className="w-5 h-5" />
-            <span className="font-semibold">Messages</span>
-            <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-              12
-            </span>
-          </button>
-
-          {/* My Bookings */}
-          <div className="mt-6 px-2">
-            <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 tracking-wide">My Bookings</h3>
-            <div className="space-y-2 mb-4">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Total Booked</span>
-                <span className="font-bold">14 hrs</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Pending</span>
-                <span className="font-bold">2 events</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Categories */}
-          <div className="mt-4 px-2">
-            <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 tracking-wide">Categories</h3>
-            <div className="space-y-2">
-              {categories.map((category, index) => (
-                <button key={index} className="w-full flex items-center gap-3 py-2 px-2 hover:bg-gray-50 rounded-lg transition-colors">
-                  <div className={`w-3 h-3 rounded-full ${category.dotColor}`}></div>
-                  <span className="text-sm text-gray-700 font-medium">{category.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </nav>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-8 py-4">
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation */}
+      <nav className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-gray-100 rounded-lg">
-                <Menu className="w-5 h-5" />
-              </button>
-              <h1 className="text-2xl font-bold">{currentMonth}</h1>
-              <div className="flex gap-2">
-                <button className="p-2 hover:bg-gray-100 rounded-lg">
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <button className="p-2 hover:bg-gray-100 rounded-lg">
-                  <ChevronRight className="w-5 h-5" />
-                </button>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-white" />
               </div>
-              <button className="px-4 py-2 text-red-500 font-bold hover:bg-red-50 rounded-lg">
-                TODAY
-              </button>
-            </div>
-            <div className="flex items-center gap-4">
-              <button className="p-2 hover:bg-gray-100 rounded-lg">
-                <Search className="w-5 h-5 text-gray-600" />
-              </button>
-              <button className="p-2 hover:bg-gray-100 rounded-lg">
-                <Bell className="w-5 h-5 text-gray-600" />
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800">
-                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                <span className="font-semibold uppercase text-xs tracking-wide">Unity Hub</span>
-                <ChevronDown className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </header>
-
-        {/* Calendar Grid */}
-        <div className="flex-1 overflow-auto p-8">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            {/* Days of Week Header */}
-            <div className="grid grid-cols-7 border-b border-gray-200">
-              {daysOfWeek.map((day, index) => {
-                const isWeekend = day === 'SAT' || day === 'SUN';
-                return (
-                  <div key={index} className={`px-4 py-3 text-center text-xs font-bold uppercase ${
-                    isWeekend ? 'text-orange-500' : 'text-gray-500'
-                  }`}>
-                    {day}
-                  </div>
-                );
-              })}
+              <span className="text-xl font-bold text-gray-900">
+                PlatformOne
+              </span>
             </div>
 
-            {/* Calendar Days */}
-            <div className="grid grid-cols-7">
-              {calendarDays.map((dayData, index) => {
-                const dayEvents = getEventsForDay(dayData.day, dayData.isCurrentMonth);
-                const isHighlighted = dayData.day === 14 && dayData.isCurrentMonth;
-                
-                return (
-                  <div
-                    key={index}
-                    className={`min-h-[120px] border-r border-b border-gray-100 p-3 ${
-                      !dayData.isCurrentMonth ? 'bg-gray-50' : ''
-                    } ${isHighlighted ? 'bg-red-50' : ''}`}
-                  >
-                    <div className={`text-base font-bold mb-2 ${
-                      dayData.isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
-                    }`}>
-                      {dayData.day}
-                    </div>
-                    <div className="space-y-1">
-                      {dayEvents.map(event => (
-                        <div
-                          key={event.id}
-                          className={`text-xs px-2 py-1 rounded border ${
-                            categoryStyles[event.category]
-                          } font-semibold truncate cursor-pointer hover:shadow-sm transition-shadow`}
-                        >
-                          {event.title}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="hidden md:flex items-center gap-8">
+              <Link
+                href="#features"
+                className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
+              >
+                Features
+              </Link>
+              <Link
+                href="#how-it-works"
+                className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
+              >
+                How it works
+              </Link>
+              <Link
+                href="#about"
+                className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
+              >
+                About
+              </Link>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Link
+                href="/calendar"
+                className="px-5 py-2 text-gray-600 hover:text-gray-900 font-semibold transition-colors"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/calendar"
+                className="px-5 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors"
+              >
+                Get Started
+              </Link>
             </div>
           </div>
         </div>
-      </main>
+      </nav>
 
-      {/* Chat Button */}
-      <button className="fixed bottom-8 right-8 w-14 h-14 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg flex items-center justify-center transition-colors">
-        <MessageSquare className="w-6 h-6" />
-      </button>
+      {/* Hero Section */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-12 py-20 lg:py-32">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left Content */}
+          <div className="space-y-8">
+            <div className="inline-block">
+              <span className="px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold">
+                Event Management Made Simple
+              </span>
+            </div>
+
+            <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 leading-tight">
+              Consolidate All Your <span className="text-red-500">Events</span>{" "}
+              in One Place
+            </h1>
+
+            <p className="text-xl text-gray-600 leading-relaxed">
+              Streamline event coordination for volunteers, participants, and
+              staff. Manage bookings, schedules, and communications seamlessly
+              across your organization.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <Link
+                href="/calendar"
+                className="px-8 py-4 bg-red-500 text-white rounded-lg font-bold text-lg hover:bg-red-600 transition-colors text-center"
+              >
+                Start Organizing
+              </Link>
+              <Link
+                href="#how-it-works"
+                className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-lg font-bold text-lg hover:border-gray-400 transition-colors text-center"
+              >
+                See How It Works
+              </Link>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-6 pt-8 border-t border-gray-200">
+              <div>
+                <div className="text-3xl font-bold text-gray-900">500+</div>
+                <div className="text-sm text-gray-600 font-medium">
+                  Organizations
+                </div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-gray-900">15K+</div>
+                <div className="text-sm text-gray-600 font-medium">
+                  Events Managed
+                </div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-gray-900">50K+</div>
+                <div className="text-sm text-gray-600 font-medium">
+                  Active Users
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Visual */}
+          <div className="relative hidden lg:block">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
+              {/* Mini Calendar Preview */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+                  <h3 className="font-bold text-lg text-gray-900">
+                    Upcoming Events
+                  </h3>
+                  <span className="text-sm text-gray-500">January 2025</span>
+                </div>
+
+                {/* Sample Events */}
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                    <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center shrink-0">
+                      <span className="text-white font-bold text-sm">06</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-gray-900 text-sm">
+                        Workshop Session
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        10:00 AM - 2:00 PM
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shrink-0">
+                      <span className="text-white font-bold text-sm">13</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-gray-900 text-sm">
+                        Volunteer Orientation
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        9:00 AM - 11:00 AM
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center shrink-0">
+                      <span className="text-white font-bold text-sm">21</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-gray-900 text-sm">
+                        Community Meetup
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        3:00 PM - 5:00 PM
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                    <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center shrink-0">
+                      <span className="text-white font-bold text-sm">25</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-gray-900 text-sm">
+                        Staff Training
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        1:00 PM - 4:00 PM
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section
+        id="features"
+        className="bg-white border-y border-gray-200 py-20"
+      >
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Everything You Need to Manage Events
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Built specifically for organizations coordinating volunteers,
+              participants, and staff
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Feature 1 */}
+            <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 hover:border-orange-300 transition-colors">
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                <Calendar className="w-6 h-6 text-orange-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">
+                Unified Calendar
+              </h3>
+              <p className="text-gray-600 leading-relaxed">
+                View all events, workshops, and meetings in one central
+                calendar. Never miss an important date.
+              </p>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 hover:border-blue-300 transition-colors">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">
+                Multi-Role Management
+              </h3>
+              <p className="text-gray-600 leading-relaxed">
+                Separate views and permissions for volunteers, participants, and
+                staff members.
+              </p>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 hover:border-green-300 transition-colors">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">
+                Easy Booking
+              </h3>
+              <p className="text-gray-600 leading-relaxed">
+                Streamline event registration and booking process for all
+                participants.
+              </p>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 hover:border-purple-300 transition-colors">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                <MessageSquare className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">
+                Team Communication
+              </h3>
+              <p className="text-gray-600 leading-relaxed">
+                Keep everyone connected with integrated messaging for all
+                stakeholders.
+              </p>
+            </div>
+
+            {/* Feature 5 */}
+            <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 hover:border-orange-300 transition-colors">
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                <Clock className="w-6 h-6 text-orange-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">
+                Time Tracking
+              </h3>
+              <p className="text-gray-600 leading-relaxed">
+                Monitor volunteer hours and staff time with built-in tracking
+                tools.
+              </p>
+            </div>
+
+            {/* Feature 6 */}
+            <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 hover:border-red-300 transition-colors">
+              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+                <Zap className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">
+                Real-time Updates
+              </h3>
+              <p className="text-gray-600 leading-relaxed">
+                Instant notifications for schedule changes, new events, and
+                important updates.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-12 py-20">
+        <div className="bg-gradient-to-br from-red-500 to-orange-500 rounded-3xl p-12 lg:p-16 text-center">
+          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+            Ready to Transform Your Event Management?
+          </h2>
+          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+            Join hundreds of organizations already using PlatformOne to
+            coordinate their events seamlessly.
+          </p>
+          <Link
+            href="/calendar"
+            className="inline-block px-8 py-4 bg-white text-red-600 rounded-lg font-bold text-lg hover:bg-gray-100 transition-colors"
+          >
+            Get Started Free
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 py-12">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-lg font-bold text-gray-900">
+                PlatformOne
+              </span>
+            </div>
+            <p className="text-gray-600 text-sm">
+              © 2025 PlatformOne. All rights reserved.
+            </p>
+            <div className="flex gap-6">
+              <Link
+                href="#"
+                className="text-gray-600 hover:text-gray-900 text-sm font-medium"
+              >
+                Privacy
+              </Link>
+              <Link
+                href="#"
+                className="text-gray-600 hover:text-gray-900 text-sm font-medium"
+              >
+                Terms
+              </Link>
+              <Link
+                href="#"
+                className="text-gray-600 hover:text-gray-900 text-sm font-medium"
+              >
+                Contact
+              </Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
