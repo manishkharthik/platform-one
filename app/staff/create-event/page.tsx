@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, X, Plus } from "lucide-react";
 
 type Question = {
@@ -40,6 +40,10 @@ const INITIAL_FORM: EventFormData = {
 
 export default function CreateEventPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const eventId = searchParams.get("id");
+  const isEditMode = !!eventId;
+  
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [formData, setFormData] = useState<EventFormData>(INITIAL_FORM);
@@ -57,6 +61,55 @@ export default function CreateEventPage() {
     setIsAuthorized(true);
     setIsCheckingAuth(false);
   }, [router]);
+
+  // Load event data if in edit mode
+  useEffect(() => {
+    if (!isEditMode || !isAuthorized) return;
+
+    const loadEventData = async () => {
+      try {
+        const response = await fetch(`/api/events/${eventId}`);
+        if (!response.ok) throw new Error("Failed to load event");
+        
+        const event = await response.json();
+        
+        // Parse start and end dates
+        const startDate = new Date(event.start);
+        const endDate = new Date(event.end);
+        
+        // Format dates as YYYY-MM-DD for input fields
+        const formatDate = (date: Date) => date.toISOString().split('T')[0];
+        const formatTime = (date: Date) => {
+          const hours = String(date.getHours()).padStart(2, '0');
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          return `${hours}:${minutes}`;
+        };
+
+        setFormData({
+          name: event.name,
+          start: formatDate(startDate),
+          startTime: formatTime(startDate),
+          end: formatDate(endDate),
+          endTime: formatTime(endDate),
+          location: event.location,
+          minTier: event.minTier,
+          participantCapacity: event.participantCapacity,
+          volunteerCapacity: event.volunteerCapacity,
+          questions: event.questions.map((q: any) => ({
+            id: q.id,
+            text: q.text,
+            type: q.type,
+            options: q.options || [],
+            targetRole: q.targetRole,
+          })),
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load event data");
+      }
+    };
+
+    loadEventData();
+  }, [isEditMode, eventId, isAuthorized]);
 
   const handleInputChange = (
     field: keyof Omit<EventFormData, "questions">,
@@ -152,8 +205,11 @@ export default function CreateEventPage() {
         })),
       };
 
-      const response = await fetch("/api/events", {
-        method: "POST",
+      const url = isEditMode ? `/api/events/${eventId}` : "/api/events";
+      const method = isEditMode ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
         },
@@ -161,7 +217,7 @@ export default function CreateEventPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create event");
+        throw new Error(`Failed to ${isEditMode ? "update" : "create"} event`);
       }
 
       // Success - redirect back to staff page
@@ -201,7 +257,9 @@ export default function CreateEventPage() {
           >
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
-          <h1 className="text-2xl font-bold text-gray-900">Create New Event</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {isEditMode ? "Update Event" : "Create New Event"}
+          </h1>
         </div>
       </div>
 
@@ -636,7 +694,7 @@ export default function CreateEventPage() {
               disabled={loading}
               className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-lg font-semibold hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Creating..." : "Create Event"}
+              {loading ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Event" : "Create Event")}
             </button>
           </div>
         </form>

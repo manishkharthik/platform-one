@@ -166,6 +166,30 @@ export default function StaffPortalPage() {
     setSelectedDay(day);
   };
 
+  const handleEditEvent = (eventId: string, event: Event) => {
+    router.push(`/staff/create-event?id=${event.dbId}`);
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete event");
+      }
+
+      // Remove event from state
+      setEvents(events.filter((e) => e.dbId !== eventId));
+      setSelectedEvent(null);
+      setSelectedDay(null);
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      alert("Failed to delete event. Please try again.");
+    }
+  };
+
 
   // Get selected event title for display
   const getSelectedEventTitle = () => {
@@ -229,6 +253,8 @@ export default function StaffPortalPage() {
               monthName={monthName}
               selectedEvent={selectedEvent}
               onEventSelect={setSelectedEvent}
+              onEditEvent={handleEditEvent}
+              onDeleteEvent={handleDeleteEvent}
             />
           </section>
 

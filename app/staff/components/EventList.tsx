@@ -1,4 +1,4 @@
-import { Clock, MapPin, UserCheck } from "lucide-react";
+import { Clock, MapPin, UserCheck, Edit2, Trash2 } from "lucide-react";
 import { Event, Category } from "../types";
 
 type EventListProps = {
@@ -8,6 +8,8 @@ type EventListProps = {
   monthName: string;
   selectedEvent?: string | null;
   onEventSelect?: (eventId: string) => void;
+  onEditEvent?: (eventId: string, event: Event) => void;
+  onDeleteEvent?: (eventId: string) => void;
 };
 
 export default function EventList({
@@ -17,7 +19,21 @@ export default function EventList({
   monthName,
   selectedEvent,
   onEventSelect,
+  onEditEvent,
+  onDeleteEvent,
 }: EventListProps) {
+  const handleDeleteClick = (e: React.MouseEvent, eventId: string) => {
+    e.stopPropagation();
+    if (window.confirm("Are you sure you want to delete this event?")) {
+      onDeleteEvent?.(eventId);
+    }
+  };
+
+  const handleEditClick = (e: React.MouseEvent, eventId: string, event: Event) => {
+    e.stopPropagation();
+    onEditEvent?.(eventId, event);
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6">
       <div className="flex items-center justify-between mb-4">
@@ -53,7 +69,25 @@ export default function EventList({
               onClick={() => onEventSelect?.(event.dbId || "")}
             >
               <div className="flex items-start justify-between mb-2">
-                <h4 className="font-semibold text-sm text-gray-900">{event.title}</h4>
+                <h4 className="font-semibold text-sm text-gray-900 flex-1">{event.title}</h4>
+                <div className="flex items-center gap-1 ml-2">
+                  <button
+                    onClick={(e) => handleEditClick(e, event.dbId || "", event)}
+                    className="p-1 hover:bg-blue-100 rounded transition-colors"
+                    title="Edit event"
+                  >
+                    <Edit2 className="w-4 h-4 text-blue-600" />
+                  </button>
+                  <button
+                    onClick={(e) => handleDeleteClick(e, event.dbId || "")}
+                    className="p-1 hover:bg-red-100 rounded transition-colors"
+                    title="Delete event"
+                  >
+                    <Trash2 className="w-4 h-4 text-red-600" />
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 mb-2">
                 <span
                   className={`text-[10px] font-semibold px-2 py-1 rounded-full ${category?.color}`}
                 >
