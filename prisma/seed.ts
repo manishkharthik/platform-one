@@ -26,6 +26,7 @@ async function main() {
     data: {
       name: "Walter Sullivan",
       email: "walter@participant.com",
+      password: "123456",
       role: "PARTICIPANT",
       tier: "GOLD",
     },
@@ -35,6 +36,7 @@ async function main() {
     data: {
       name: "Sarah Johnson",
       email: "sarah@participant.com",
+      password: "123456",
       role: "PARTICIPANT",
       tier: "SILVER",
     },
@@ -44,6 +46,7 @@ async function main() {
     data: {
       name: "Mike Chen",
       email: "mike@volunteer.com",
+      password: "123456",
       role: "VOLUNTEER",
       tier: "PLATINUM",
     },
@@ -53,6 +56,7 @@ async function main() {
     data: {
       name: "Lisa Wong",
       email: "lisa@volunteer.com",
+      password: "123456",
       role: "VOLUNTEER",
       tier: "GOLD",
     },
@@ -62,6 +66,7 @@ async function main() {
     data: {
       name: "Admin User",
       email: "admin@staff.com",
+      password: "123456",
       role: "STAFF",
       tier: "PLATINUM",
     },
@@ -443,12 +448,12 @@ async function main() {
   console.log(`   Questions: ${await prisma.question.count()}`);
   console.log(`   Bookings: ${await prisma.booking.count()}`);
   console.log(`   Answers: ${await prisma.answer.count()}`);
-  console.log("\n💡 Test users:");
-  console.log(`   Participant: walter@participant.com (Walter Sullivan - GOLD)`);
-  console.log(`   Participant: sarah@participant.com (Sarah Johnson - SILVER)`);
-  console.log(`   Volunteer: mike@volunteer.com (Mike Chen - PLATINUM)`);
-  console.log(`   Volunteer: lisa@volunteer.com (Lisa Wong - GOLD)`);
-  console.log(`   Staff: admin@staff.com (Admin User - PLATINUM)`);
+  console.log("\n💡 Test users (all use password: 123456):");
+  console.log(`   Participant: walter@participant.com / 123456 (Walter Sullivan - GOLD)`);
+  console.log(`   Participant: sarah@participant.com / 123456 (Sarah Johnson - SILVER)`);
+  console.log(`   Volunteer: mike@volunteer.com / 123456 (Mike Chen - PLATINUM)`);
+  console.log(`   Volunteer: lisa@volunteer.com / 123456 (Lisa Wong - GOLD)`);
+  console.log(`   Staff: admin@staff.com / 123456 (Admin User - PLATINUM)`);
 }
 
 main()

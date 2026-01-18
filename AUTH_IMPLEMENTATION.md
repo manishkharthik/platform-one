@@ -85,9 +85,9 @@ The following security implementations should be completed before production:
    - Set `JWT_SECRET` environment variable
 
 3. **Staff Access Code:**
-   - Implement validation against stored access codes in database
-   - Consider adding access code expiration
-   - Set `STAFF_ACCESS_CODE` environment variable or use database
+   - ✅ Implemented with hardcoded code: `123456`
+   - Only users with role `STAFF` can access the staff dashboard
+   - Consider adding access code expiration or storing in database for future enhancement
 
 4. **HTTPS Only:**
    - Ensure authentication endpoints only work over HTTPS in production

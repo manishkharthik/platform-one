@@ -6,7 +6,7 @@ import { Users, Menu, Plus, X, Eye, EyeOff, Edit2 } from "lucide-react";
 import Sidebar from "../staff/sidebar";
 import UserDropdown from "../components/UserDropdown";
 
-interface Participant {
+interface Volunteer {
   id: string;
   name: string;
   email: string;
@@ -15,20 +15,20 @@ interface Participant {
   tier?: string;
 }
 
-export default function StaffParticipantsPage() {
+export default function StaffVolunteersPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingParticipant, setEditingParticipant] = useState<Participant | null>(null);
+  const [editingVolunteer, setEditingVolunteer] = useState<Volunteer | null>(null);
   const [revealedPasswords, setRevealedPasswords] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
   const [editFormData, setEditFormData] = useState({
     name: "",
     email: "",
     password: "",
-    role: "PARTICIPANT",
+    role: "VOLUNTEER",
     tier: "",
   });
   const [formData, setFormData] = useState({
@@ -42,42 +42,42 @@ export default function StaffParticipantsPage() {
   const [editSuccess, setEditSuccess] = useState("");
 
   useEffect(() => {
-    fetchParticipants();
+    fetchVolunteers();
   }, []);
 
-  const fetchParticipants = async () => {
+  const fetchVolunteers = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/users?role=PARTICIPANT");
+      const response = await fetch("/api/users?role=VOLUNTEER");
       if (response.ok) {
         const data = await response.json();
-        setParticipants(data);
+        setVolunteers(data);
       }
     } catch (err) {
-      console.error("Error fetching participants:", err);
+      console.error("Error fetching volunteers:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const togglePasswordVisibility = (participantId: string) => {
+  const togglePasswordVisibility = (volunteerId: string) => {
     setRevealedPasswords((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(participantId)) {
-        newSet.delete(participantId);
+      if (newSet.has(volunteerId)) {
+        newSet.delete(volunteerId);
       } else {
-        newSet.add(participantId);
+        newSet.add(volunteerId);
       }
       return newSet;
     });
   };
 
-  const filteredParticipants = participants.filter((participant) =>
-    participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    participant.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredVolunteers = volunteers.filter((volunteer) =>
+    volunteer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    volunteer.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddParticipant = async (e: React.FormEvent) => {
+  const handleAddVolunteer = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
@@ -95,33 +95,33 @@ export default function StaffParticipantsPage() {
         },
         body: JSON.stringify({
           ...formData,
-          role: "PARTICIPANT",
+          role: "VOLUNTEER",
         }),
       });
 
       if (response.ok) {
-        setSuccess("Participant added successfully!");
+        setSuccess("Volunteer added successfully!");
         setFormData({ name: "", email: "", password: "" });
         setShowAddModal(false);
-        fetchParticipants();
+        fetchVolunteers();
       } else {
         const data = await response.json();
-        setError(data.error || "Failed to add participant");
+        setError(data.error || "Failed to add volunteer");
       }
     } catch (err) {
-      setError("Error adding participant");
+      setError("Error adding volunteer");
       console.error(err);
     }
   };
 
-  const openEditModal = (participant: Participant) => {
-    setEditingParticipant(participant);
+  const openEditModal = (volunteer: Volunteer) => {
+    setEditingVolunteer(volunteer);
     setEditFormData({
-      name: participant.name,
-      email: participant.email,
-      password: participant.password || "",
-      role: participant.role,
-      tier: participant.tier || "",
+      name: volunteer.name,
+      email: volunteer.email,
+      password: volunteer.password || "",
+      role: volunteer.role,
+      tier: volunteer.tier || "",
     });
     setEditError("");
     setEditSuccess("");
@@ -130,7 +130,7 @@ export default function StaffParticipantsPage() {
 
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingParticipant) return;
+    if (!editingVolunteer) return;
 
     setEditError("");
     setEditSuccess("");
@@ -141,7 +141,7 @@ export default function StaffParticipantsPage() {
     }
 
     try {
-      const response = await fetch(`/api/users/${editingParticipant.id}`, {
+      const response = await fetch(`/api/users/${editingVolunteer.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -151,22 +151,22 @@ export default function StaffParticipantsPage() {
 
       if (response.ok) {
         const updatedUser = await response.json();
-        setParticipants(
-          participants.map((p) =>
-            p.id === editingParticipant.id ? updatedUser : p
+        setVolunteers(
+          volunteers.map((vol) =>
+            vol.id === editingVolunteer.id ? updatedUser : vol
           )
         );
-        setEditSuccess("Participant updated successfully!");
+        setEditSuccess("Volunteer updated successfully!");
         setTimeout(() => {
           setShowEditModal(false);
-          setEditingParticipant(null);
+          setEditingVolunteer(null);
         }, 1500);
       } else {
         const data = await response.json();
-        setEditError(data.error || "Failed to update participant");
+        setEditError(data.error || "Failed to update volunteer");
       }
     } catch (err) {
-      setEditError("Error updating participant");
+      setEditError("Error updating volunteer");
       console.error(err);
     }
   };
@@ -188,7 +188,7 @@ export default function StaffParticipantsPage() {
               >
                 <Menu className="w-5 h-5" />
               </button>
-              <h1 className="text-2xl font-bold text-gray-900">Participant Directory</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Volunteer Directory</h1>
             </div>
             <UserDropdown
               userName="Admin"
@@ -206,10 +206,10 @@ export default function StaffParticipantsPage() {
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-gray-900">
-                      Current Participants
+                      Current Volunteers
                     </h2>
                     <p className="text-sm text-gray-500">
-                      {loading ? "Loading..." : `${participants.length} participant(s) registered`}
+                      {loading ? "Loading..." : `${volunteers.length} volunteer(s) registered`}
                     </p>
                   </div>
                 </div>
@@ -218,7 +218,7 @@ export default function StaffParticipantsPage() {
                   className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
                 >
                   <Plus className="w-4 h-4" />
-                  <span className="font-semibold">Add Participant</span>
+                  <span className="font-semibold">Add Volunteer</span>
                 </button>
               </div>
 
@@ -237,7 +237,7 @@ export default function StaffParticipantsPage() {
               <div className="mt-6 mb-4">
                 <input
                   type="text"
-                  placeholder="Search participants by name or email..."
+                  placeholder="Search volunteers by name or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
@@ -246,11 +246,11 @@ export default function StaffParticipantsPage() {
 
               <div className="mt-6 overflow-x-auto">
                 {loading ? (
-                  <div className="text-center py-8 text-gray-500">Loading participants...</div>
-                ) : participants.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">No participants yet. Add one to get started!</div>
-                ) : filteredParticipants.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">No participants found matching your search.</div>
+                  <div className="text-center py-8 text-gray-500">Loading volunteers...</div>
+                ) : volunteers.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">No volunteers yet. Add one to get started!</div>
+                ) : filteredVolunteers.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">No volunteers found matching your search.</div>
                 ) : (
                   <table className="w-full text-sm">
                     <thead>
@@ -264,29 +264,29 @@ export default function StaffParticipantsPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredParticipants.map((participant) => (
-                        <tr key={participant.id} className="border-t border-gray-100 hover:bg-gray-50">
+                      {filteredVolunteers.map((volunteer) => (
+                        <tr key={volunteer.id} className="border-t border-gray-100 hover:bg-gray-50">
                           <td className="py-3 font-semibold text-gray-900">
-                            {participant.name}
+                            {volunteer.name}
                           </td>
-                          <td className="py-3 text-gray-600">{participant.email}</td>
+                          <td className="py-3 text-gray-600">{volunteer.email}</td>
                           <td className="py-3">
                             <div className="flex items-center gap-2">
                               <span className="font-mono text-gray-600">
-                                {revealedPasswords.has(participant.id)
-                                  ? participant.password || "••••••••"
+                                {revealedPasswords.has(volunteer.id)
+                                  ? volunteer.password || "••••••••"
                                   : "••••••••"}
                               </span>
                               <button
-                                onClick={() => togglePasswordVisibility(participant.id)}
+                                onClick={() => togglePasswordVisibility(volunteer.id)}
                                 className="p-1 hover:bg-gray-100 rounded transition-colors"
                                 title={
-                                  revealedPasswords.has(participant.id)
+                                  revealedPasswords.has(volunteer.id)
                                     ? "Hide password"
                                     : "Show password"
                                 }
                               >
-                                {revealedPasswords.has(participant.id) ? (
+                                {revealedPasswords.has(volunteer.id) ? (
                                   <EyeOff className="w-4 h-4 text-gray-400" />
                                 ) : (
                                   <Eye className="w-4 h-4 text-gray-400" />
@@ -294,12 +294,12 @@ export default function StaffParticipantsPage() {
                               </button>
                             </div>
                           </td>
-                          <td className="py-3 text-gray-600">{participant.role}</td>
+                          <td className="py-3 text-gray-600">{volunteer.role}</td>
                           <td className="py-3">
                             <span className="text-gray-600 text-xs font-medium">
-                              {participant.tier ? (
+                              {volunteer.tier ? (
                                 <span className="px-2 py-1 rounded-full bg-gray-100">
-                                  {participant.tier}
+                                  {volunteer.tier}
                                 </span>
                               ) : (
                                 <span className="text-gray-400">-</span>
@@ -308,9 +308,9 @@ export default function StaffParticipantsPage() {
                           </td>
                           <td className="py-3">
                             <button
-                              onClick={() => openEditModal(participant)}
+                              onClick={() => openEditModal(volunteer)}
                               className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                              title="Edit participant"
+                              title="Edit volunteer"
                             >
                               <Edit2 className="w-4 h-4 text-slate-600" />
                             </button>
@@ -326,12 +326,12 @@ export default function StaffParticipantsPage() {
         </div>
       </main>
 
-      {/* Add Participant Modal */}
+      {/* Add Volunteer Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Add New Participant</h3>
+              <h3 className="text-lg font-semibold text-gray-950">Add New Volunteer</h3>
               <button
                 onClick={() => setShowAddModal(false)}
                 className="text-gray-400 hover:text-gray-600"
@@ -340,7 +340,7 @@ export default function StaffParticipantsPage() {
               </button>
             </div>
 
-            <form onSubmit={handleAddParticipant} className="space-y-4">
+            <form onSubmit={handleAddVolunteer} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-1">
                   Full Name
@@ -398,7 +398,7 @@ export default function StaffParticipantsPage() {
                   type="submit"
                   className="flex-1 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
                 >
-                  Add Participant
+                  Add Volunteer
                 </button>
               </div>
             </form>
@@ -406,12 +406,12 @@ export default function StaffParticipantsPage() {
         </div>
       )}
 
-      {/* Edit Participant Modal */}
-      {showEditModal && editingParticipant && (
+      {/* Edit Volunteer Modal */}
+      {showEditModal && editingVolunteer && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Edit Participant</h3>
+              <h3 className="text-lg font-semibold text-gray-950">Edit Volunteer</h3>
               <button
                 onClick={() => setShowEditModal(false)}
                 className="text-gray-400 hover:text-gray-600"

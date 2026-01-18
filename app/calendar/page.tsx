@@ -66,7 +66,18 @@ export default function Home() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [userId, setUserId] = useState<string>("");
   const [userName, setUserName] = useState<string>("Participant");
-  const [userRole, setUserRole] = useState<"PARTICIPANT" | "VOLUNTEER">("PARTICIPANT");
+  
+  // Initialize userRole from localStorage or default to PARTICIPANT
+  const [userRole, setUserRole] = useState<"PARTICIPANT" | "VOLUNTEER">(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("userRole");
+      if (stored === "VOLUNTEER" || stored === "PARTICIPANT") {
+        return stored;
+      }
+    }
+    return "PARTICIPANT";
+  });
+  
   const [totalBookedHours, setTotalBookedHours] = useState<number>(0);
   const [numberOfEventsBooked, setNumberOfEventsBooked] = useState<number>(0);
   const [filterType, setFilterType] = useState<FilterType>("all");
@@ -85,18 +96,26 @@ export default function Home() {
       // Get user from localStorage (set during login)
       const storedUserId = localStorage.getItem("userId");
       const storedUserName = localStorage.getItem("userName");
+      const storedUserRole = localStorage.getItem("userRole");
       
       if (storedUserId && storedUserName) {
         setUserId(storedUserId);
         setUserName(storedUserName);
+        
+        // Set role from localStorage if available
+        if (storedUserRole === "VOLUNTEER" || storedUserRole === "PARTICIPANT") {
+          setUserRole(storedUserRole as "PARTICIPANT" | "VOLUNTEER");
+        }
 
-        // Fetch user details from database to get role
+        // Fetch user details from database to verify/update role
         try {
           const userResponse = await fetch(`/api/users/${storedUserId}`);
           if (userResponse.ok) {
             const userData = await userResponse.json();
             if (userData.role) {
               setUserRole(userData.role as "PARTICIPANT" | "VOLUNTEER");
+              // Also update localStorage to keep it in sync
+              localStorage.setItem("userRole", userData.role);
             }
           }
         } catch (error) {
@@ -449,8 +468,13 @@ export default function Home() {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {/* Week Header */}
-        <div className="grid grid-cols-8 border-b border-gray-200 bg-gray-50">
-          <div className="col-span-1 border-r border-gray-200 p-3">
+        <div 
+          className="grid border-b border-gray-200 bg-gray-50"
+          style={{
+            gridTemplateColumns: `60px repeat(7, 1fr)`,
+          }}
+        >
+          <div className="border-r border-gray-200 p-3">
             <p className="text-xs font-semibold text-gray-600">TIME</p>
           </div>
           {weekDays.map((date, index) => {
@@ -459,7 +483,7 @@ export default function Home() {
             return (
               <div
                 key={index}
-                className={`col-span-1 p-3 text-center border-r border-gray-200 ${
+                className={`p-3 text-center border-r border-gray-200 ${
                   isToday ? "bg-red-50" : ""
                 }`}
               >
@@ -488,16 +512,14 @@ export default function Home() {
             }}
           >
             {/* Time Labels */}
-            <div className="border-r border-gray-200 bg-gray-50">
-              {hoursOfDay.map((hour) => (
-                <div
-                  key={`time-${hour}`}
-                  className="border-b border-gray-100 h-20 p-2 text-xs text-gray-500 font-semibold flex items-start"
-                >
-                  {hour === 0 ? "12 AM" : hour < 12 ? `${hour} AM` : hour === 12 ? "12 PM" : `${hour - 12} PM`}
-                </div>
-              ))}
-            </div>
+            {hoursOfDay.map((hour) => (
+              <div
+                key={`time-${hour}`}
+                className="border-r border-b border-gray-200 bg-gray-50 h-20 p-2 text-xs text-gray-500 font-semibold flex items-start"
+              >
+                {hour === 0 ? "12 AM" : hour < 12 ? `${hour} AM` : hour === 12 ? "12 PM" : `${hour - 12} PM`}
+              </div>
+            ))}
 
             {/* Day Columns */}
             {weekDays.map((date, dayIndex) => {

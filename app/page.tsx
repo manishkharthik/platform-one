@@ -88,8 +88,23 @@ export default function LoginPage() {
         localStorage.setItem("userEmail", data.user.email);
       }
       
+      // Ensure userRole is stored (this is critical for the volunteer bug fix)
       if (data.userRole) {
         localStorage.setItem("userRole", data.userRole);
+      } else if (data.user) {
+        // Fallback: if userRole is not in response, try to fetch it
+        console.warn("userRole not in login response, fetching from user endpoint");
+        try {
+          const userResponse = await fetch(`/api/users/${data.user.id}`);
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            if (userData.role) {
+              localStorage.setItem("userRole", userData.role);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to fetch user role:", err);
+        }
       }
 
       // Route based on user's actual role from database

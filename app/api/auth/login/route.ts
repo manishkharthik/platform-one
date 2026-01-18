@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Mock password validation - replace with actual hashing library (bcrypt recommended)
+// Password validation - compare plain text passwords
+// TODO: In production, use bcrypt or similar for secure password hashing/verification
 async function validatePassword(
   plainPassword: string,
-  hashedPassword: string
+  storedPassword: string
 ): Promise<boolean> {
-  // TODO: In production, use bcrypt or similar for password hashing/verification
-  // For now, this is a placeholder
-  return plainPassword === hashedPassword;
+  return plainPassword === storedPassword;
 }
 
 export async function POST(request: NextRequest) {
@@ -34,9 +33,8 @@ export async function POST(request: NextRequest) {
 
     // Verify staff access code if provided
     if (role === "staff" && accessCode) {
-      // TODO: Validate access code against your staff access codes
-      // For now, this is a placeholder
-      if (accessCode !== process.env.STAFF_ACCESS_CODE) {
+      const STAFF_ACCESS_CODE = "123456";
+      if (accessCode !== STAFF_ACCESS_CODE) {
         return NextResponse.json(
           { error: "Invalid staff access code" },
           { status: 401 }
@@ -44,7 +42,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Find user by email
+    // Find user by email (including password for validation)
     const user = await prisma.user.findUnique({
       where: { email },
       select: {
@@ -52,6 +50,8 @@ export async function POST(request: NextRequest) {
         email: true,
         name: true,
         role: true,
+        tier: true,
+        password: true,
       },
     });
 
@@ -80,9 +80,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Validate password against hashed password in database
-    // This is a placeholder - implement actual password verification
-    if (password === "") {
+    // Validate password against database
+    const passwordMatch = await validatePassword(password, user.password || "");
+    if (!passwordMatch) {
       return NextResponse.json(
         { error: "Invalid email or password" },
         { status: 401 }

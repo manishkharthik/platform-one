@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar from "./sidebar";
 import Header from "./components/Header";
 import CalendarGrid from "./components/CalendarGrid";
@@ -16,6 +17,9 @@ import {
 } from "./constants";
 
 export default function StaffPortalPage() {
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [attendanceTab, setAttendanceTab] = useState<"participants" | "volunteers">("participants");
@@ -26,8 +30,21 @@ export default function StaffPortalPage() {
   const [isLoadingAttendees, setIsLoadingAttendees] = useState(false);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
+  // Check authorization on mount
+  useEffect(() => {
+    const userRole = localStorage.getItem("userRole");
+    if (userRole !== "STAFF") {
+      router.push("/");
+      return;
+    }
+    setIsAuthorized(true);
+    setIsLoading(false);
+  }, [router]);
+
   // Fetch events from database on mount
   useEffect(() => {
+    if (!isAuthorized) return;
+
     const fetchEvents = async () => {
       try {
         setIsLoadingEvents(true);
@@ -72,7 +89,7 @@ export default function StaffPortalPage() {
     };
 
     fetchEvents();
-  }, []);
+  }, [isAuthorized]);
 
   // Fetch attendees when selected event changes
   useEffect(() => {
@@ -156,6 +173,23 @@ export default function StaffPortalPage() {
   };
 
   const shouldShowCategories = true; // Show categories on main staff dashboard
+  
+  // Show loading state while checking authorization
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600 mx-auto" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If not authorized, this shouldn't render (redirected above)
+  if (!isAuthorized) {
+    return null;
+  }
   
   return (
     <div className="flex h-screen bg-gray-50">

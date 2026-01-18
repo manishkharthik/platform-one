@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, X, Plus } from "lucide-react";
 
@@ -36,10 +36,23 @@ const INITIAL_FORM: EventFormData = {
 
 export default function CreateEventPage() {
   const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [formData, setFormData] = useState<EventFormData>(INITIAL_FORM);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+
+  // Check authorization on mount
+  useEffect(() => {
+    const userRole = localStorage.getItem("userRole");
+    if (userRole !== "STAFF") {
+      router.push("/");
+      return;
+    }
+    setIsAuthorized(true);
+    setIsCheckingAuth(false);
+  }, [router]);
 
   const handleInputChange = (
     field: keyof Omit<EventFormData, "questions">,
@@ -167,6 +180,23 @@ export default function CreateEventPage() {
       setLoading(false);
     }
   };
+
+  // Show loading state while checking authorization
+  if (isCheckingAuth) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600 mx-auto" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If not authorized, this shouldn't render (redirected above)
+  if (!isAuthorized) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutGrid, ClipboardList, MessageSquare, Users, Plus, ShieldCheck } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { LayoutGrid, ClipboardList, Users, Plus, ShieldCheck } from "lucide-react";
 
 type Category = {
   name: string;
@@ -14,13 +15,23 @@ type SidebarProps = {
   sidebarOpen: boolean;
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   categories: Category[];
+  adminName?: string;
+  adminRole?: string;
 };
 
 export default function Sidebar({
   sidebarOpen,
-  setSidebarOpen,
   categories,
+  adminName = "Admin",
+  adminRole = "Staff",
 }: SidebarProps) {
+  const pathname = usePathname();
+  
+  const isDashboardActive = pathname === "/staff";
+  const isAttendanceActive = pathname === "/staffattendance";
+  const isParticipantsActive = pathname === "/staffparticipants";
+  const isVolunteersActive = pathname === "/staffvolunteers";
+
   return (
     <aside
       className={`${
@@ -28,7 +39,7 @@ export default function Sidebar({
       } transition-all duration-300 bg-white border-r border-gray-200 flex flex-col overflow-hidden`}
     >
       <div className="p-4 border-b border-gray-200">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/staff" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
             <ShieldCheck className="w-5 h-5 text-white" />
           </div>
@@ -38,12 +49,17 @@ export default function Sidebar({
 
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-sm font-semibold">
-            WA
+          <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-xs font-semibold text-white">
+            {adminName
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .toUpperCase()
+              .slice(0, 2)}
           </div>
-          <div className="flex-1">
-            <div className="font-bold text-sm">Walter Admin</div>
-            <div className="text-xs text-gray-500 uppercase font-medium">Staff</div>
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-sm text-gray-900 truncate">{adminName}</div>
+            <div className="text-xs text-gray-600 uppercase font-semibold">{adminRole}</div>
           </div>
         </div>
       </div>
@@ -58,10 +74,14 @@ export default function Sidebar({
         </Link>
       </div>
 
-      <nav className="flex-1 px-2">
+      <nav className="flex-1 px-2 py-4 overflow-y-auto">
         <Link
           href="/staff"
-          className="w-full flex items-center gap-3 px-4 py-3 bg-slate-900 text-white rounded-lg transition-colors mb-1"
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors mb-1 ${
+            isDashboardActive
+              ? "bg-slate-900 text-white font-semibold"
+              : "text-gray-600 hover:bg-gray-50"
+          }`}
         >
           <LayoutGrid className="w-5 h-5" />
           <span className="font-semibold">Dashboard</span>
@@ -69,7 +89,11 @@ export default function Sidebar({
 
         <Link
           href="/staffattendance"
-          className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors mb-1"
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors mb-1 ${
+            isAttendanceActive
+              ? "bg-slate-900 text-white font-semibold"
+              : "text-gray-600 hover:bg-gray-50"
+          }`}
         >
           <ClipboardList className="w-5 h-5" />
           <span className="font-semibold">Attendance</span>
@@ -77,22 +101,30 @@ export default function Sidebar({
 
         <Link
           href="/staffparticipants"
-          className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors mb-1"
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors mb-1 ${
+            isParticipantsActive
+              ? "bg-slate-900 text-white font-semibold"
+              : "text-gray-600 hover:bg-gray-50"
+          }`}
         >
           <Users className="w-5 h-5" />
-          <span className="font-semibold">Participants</span>
+          <span className="font-semibold">Manage Users</span>
         </Link>
 
         <Link
-          href="/staffreports"
-          className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+          href="/staffvolunteers"
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors mb-6 ${
+            isVolunteersActive
+              ? "bg-slate-900 text-white font-semibold"
+              : "text-gray-600 hover:bg-gray-50"
+          }`}
         >
-          <MessageSquare className="w-5 h-5" />
-          <span className="font-semibold">Reports</span>
+          <Users className="w-5 h-5" />
+          <span className="font-semibold">Manage Volunteers</span>
         </Link>
 
         {categories.length > 0 && (
-          <div className="mt-8 px-2">
+          <div className="px-4 py-2">
             <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 tracking-wide">
               Categories
             </h3>
@@ -107,6 +139,10 @@ export default function Sidebar({
           </div>
         )}
       </nav>
+
+      <div className="p-4 border-t border-gray-200 text-center text-xs text-gray-500">
+        <p>© 2026 Platform One</p>
+      </div>
     </aside>
   );
 }
