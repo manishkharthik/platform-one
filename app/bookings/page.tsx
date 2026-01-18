@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Menu, Bell, Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import UserSidebar from "../components/UserSidebar";
 import UserDropdown from "../components/UserDropdown";
 
@@ -43,6 +43,7 @@ export default function BookingsParticipantPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [totalBookedHours, setTotalBookedHours] = useState<number>(0);
   const [numberOfEventsBooked, setNumberOfEventsBooked] = useState<number>(0);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     const fetchUserAndBookings = async () => {
@@ -125,6 +126,18 @@ export default function BookingsParticipantPage() {
     });
   };
 
+  const filterBookings = (bookingsList: Booking[]) => {
+    if (!searchQuery.trim()) {
+      return bookingsList;
+    }
+    const query = searchQuery.toLowerCase();
+    return bookingsList.filter(
+      (booking) =>
+        booking.event.name.toLowerCase().includes(query) ||
+        booking.event.location.toLowerCase().includes(query)
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex h-screen bg-gray-50">
@@ -174,12 +187,16 @@ export default function BookingsParticipantPage() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <button className="p-2 hover:bg-gray-100 rounded-lg">
-              <Search className="w-5 h-5 text-gray-600" />
-            </button>
-            <button className="p-2 hover:bg-gray-100 rounded-lg">
-              <Bell className="w-5 h-5 text-gray-600" />
-            </button>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search bookings by name or location..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white w-72"
+              />
+              <Search className="absolute right-3 top-2.5 w-5 h-5 text-gray-400 pointer-events-none" />
+            </div>
             <UserDropdown
               userName={userName}
               userRole="PARTICIPANT"
@@ -244,13 +261,13 @@ export default function BookingsParticipantPage() {
         ) : (
           <>
             {/* Upcoming Events */}
-            {bookings.upcoming.length > 0 && (
+            {filterBookings(bookings.upcoming).length > 0 && (
               <div className="mb-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
                   Upcoming Events
                 </h2>
                 <div className="grid gap-4">
-                  {bookings.upcoming.map((booking) => (
+                  {filterBookings(bookings.upcoming).map((booking) => (
                     <div
                       key={booking.id}
                       className="bg-white rounded-lg shadow-md hover:shadow-lg transition p-6 border-l-4 border-green-500"
@@ -322,13 +339,13 @@ export default function BookingsParticipantPage() {
             )}
 
             {/* Completed Events */}
-            {bookings.completed.length > 0 && (
+            {filterBookings(bookings.completed).length > 0 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
                   Completed Events
                 </h2>
                 <div className="grid gap-4">
-                  {bookings.completed.map((booking) => (
+                  {filterBookings(bookings.completed).map((booking) => (
                     <div
                       key={booking.id}
                       className="bg-white rounded-lg shadow-md hover:shadow-lg transition p-6 border-l-4 border-gray-400 opacity-75"

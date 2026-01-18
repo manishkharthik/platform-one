@@ -63,11 +63,11 @@ export default function UserDropdown({
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
       >
-        <div className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center text-xs font-semibold text-gray-900">
+        <div className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center text-xs font-semibold text-white">
           {getInitials()}
         </div>
-        <span className="font-semibold uppercase text-xs tracking-wide hidden sm:inline max-w-[100px] truncate text-gray-100">
-          {userRole}
+        <span className="font-semibold text-sm hidden sm:inline max-w-[120px] truncate text-white">
+          {userName}
         </span>
         <ChevronDown className="w-4 h-4" />
       </button>
@@ -78,7 +78,7 @@ export default function UserDropdown({
           {/* User Info Section */}
           <div className="px-4 py-3 border-b border-gray-200">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-xs font-semibold text-blue-700">
+              <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-xs font-semibold text-white">
                 {getInitials()}
               </div>
               <div className="flex-1 min-w-0">

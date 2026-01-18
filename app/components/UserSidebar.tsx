@@ -2,20 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, BookOpen, Home } from "lucide-react";
+import { Calendar, BookOpen } from "lucide-react";
 
 type UserSidebarProps = {
   sidebarOpen: boolean;
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   totalBookedHours?: number;
   numberOfEventsBooked?: number;
+  userName?: string;
+  userRole?: string;
 };
 
 export default function UserSidebar({
   sidebarOpen,
-  setSidebarOpen,
   totalBookedHours = 0,
   numberOfEventsBooked = 0,
+  userName = "User",
+  userRole = "Participant",
 }: UserSidebarProps) {
   const pathname = usePathname();
   const isCalendarActive = pathname === "/calendar";
@@ -37,12 +40,17 @@ export default function UserSidebar({
 
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-sm font-semibold">
-            WP
+          <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-xs font-semibold text-white">
+            {userName
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .toUpperCase()
+              .slice(0, 2)}
           </div>
-          <div className="flex-1">
-            <div className="font-bold text-sm">Participant</div>
-            <div className="text-xs text-gray-500 uppercase font-medium">User</div>
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-sm text-gray-900 truncate">{userName}</div>
+            <div className="text-xs text-gray-600 uppercase font-semibold">{userRole}</div>
           </div>
         </div>
       </div>
