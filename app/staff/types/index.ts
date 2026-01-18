@@ -13,6 +13,8 @@ export type Event = {
   registered?: number;
   registeredParticipants?: number;
   registeredVolunteers?: number;
+  participantCapacity?: number;
+  volunteerCapacity?: number;
   dbId?: string; // Database ID for fetching attendees
 };
 

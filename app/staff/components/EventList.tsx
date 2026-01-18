@@ -73,19 +73,17 @@ export default function EventList({
                 </div>
               )}
               {event.capacity && (
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <UserCheck className="w-3 h-3" />
-                    {event.registered}/{event.capacity} total registered
-                  </div>
-                  {(event.registeredParticipants !== undefined || event.registeredVolunteers !== undefined) && (
-                    <div className="text-xs text-gray-400 pl-5">
-                      {event.registeredParticipants !== undefined && (
-                        <span>Participants: {event.registeredParticipants} </span>
-                      )}
-                      {event.registeredVolunteers !== undefined && (
-                        <span>Volunteers: {event.registeredVolunteers}</span>
-                      )}
+                <div className="space-y-2">
+                  {event.participantCapacity !== undefined && (
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <UserCheck className="w-3 h-3" />
+                      Participants: {event.registeredParticipants || 0}/{event.participantCapacity}
+                    </div>
+                  )}
+                  {event.volunteerCapacity !== undefined && (
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <UserCheck className="w-3 h-3" />
+                      Volunteers: {event.registeredVolunteers || 0}/{event.volunteerCapacity}
                     </div>
                   )}
                 </div>

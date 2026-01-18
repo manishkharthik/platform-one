@@ -11,6 +11,8 @@ export async function GET() {
         end: true,
         location: true,
         minTier: true,
+        participantCapacity: true,
+        volunteerCapacity: true,
         createdAt: true,
         bookings: {
           select: {
@@ -37,7 +39,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, start, end, location, minTier, questions } = body;
+    const { name, start, end, location, minTier, participantCapacity, volunteerCapacity, questions } = body;
 
     // Validate required fields
     if (!name || !start || !end || !location) {
@@ -67,6 +69,8 @@ export async function POST(request: NextRequest) {
         end: new Date(end),
         location,
         minTier: minTier || "BRONZE",
+        participantCapacity: participantCapacity || 25,
+        volunteerCapacity: volunteerCapacity || 5,
         createdById: staffUser.id,
         questions: {
           create: (questions || []).map((q: any) => ({

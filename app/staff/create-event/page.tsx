@@ -20,6 +20,8 @@ type EventFormData = {
   endTime: string;
   location: string;
   minTier: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+  participantCapacity: number;
+  volunteerCapacity: number;
   questions: Question[];
 };
 
@@ -31,6 +33,8 @@ const INITIAL_FORM: EventFormData = {
   endTime: "10:00",
   location: "",
   minTier: "BRONZE",
+  participantCapacity: 25,
+  volunteerCapacity: 5,
   questions: [],
 };
 
@@ -56,25 +60,11 @@ export default function CreateEventPage() {
 
   const handleInputChange = (
     field: keyof Omit<EventFormData, "questions">,
-    value: string
+    value: string | number
   ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
-    }));
-  };
-
-  const addQuestion = () => {
-    const newQuestion: Question = {
-      id: Date.now().toString(),
-      text: "",
-      type: "TEXT",
-      options: [],
-      targetRole: "PARTICIPANT",
-    };
-    setFormData((prev) => ({
-      ...prev,
-      questions: [...prev.questions, newQuestion],
     }));
   };
 
@@ -152,6 +142,8 @@ export default function CreateEventPage() {
         end: new Date(endDateTime).toISOString(),
         location: formData.location,
         minTier: formData.minTier,
+        participantCapacity: formData.participantCapacity,
+        volunteerCapacity: formData.volunteerCapacity,
         questions: formData.questions.map((q) => ({
           text: q.text,
           type: q.type,
@@ -317,10 +309,41 @@ export default function CreateEventPage() {
                   <option value="PLATINUM">Platinum</option>
                 </select>
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Participant Capacity
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.participantCapacity}
+                    onChange={(e) =>
+                      handleInputChange("participantCapacity", parseInt(e.target.value) || 0)
+                    }
+                    className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Volunteer Capacity
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.volunteerCapacity}
+                    onChange={(e) =>
+                      handleInputChange("volunteerCapacity", parseInt(e.target.value) || 0)
+                    }
+                    className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Questions Section */}
+          {/* Questions Section - Participants */}
           <div className="bg-white rounded-2xl border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -331,7 +354,19 @@ export default function CreateEventPage() {
               </div>
               <button
                 type="button"
-                onClick={addQuestion}
+                onClick={() => {
+                  const newQuestion: Question = {
+                    id: Date.now().toString(),
+                    text: "",
+                    type: "TEXT",
+                    options: [],
+                    targetRole: "PARTICIPANT",
+                  };
+                  setFormData((prev) => ({
+                    ...prev,
+                    questions: [...prev.questions, newQuestion],
+                  }));
+                }}
                 className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors text-sm font-semibold"
               >
                 <Plus className="w-4 h-4" />
@@ -339,35 +374,36 @@ export default function CreateEventPage() {
               </button>
             </div>
 
-            {formData.questions.length === 0 ? (
+            {formData.questions.filter((q) => q.targetRole === "PARTICIPANT").length === 0 ? (
               <p className="text-sm text-gray-500 py-4 text-center">
                 No questions added yet. Click "Add Question" to get started.
               </p>
             ) : (
               <div className="space-y-6">
-                {formData.questions.map((question) => (
-                  <div
-                    key={question.id}
-                    className="border border-gray-200 rounded-lg p-4 space-y-4"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 space-y-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">
-                            Question Text
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="e.g., What is your dietary preference?"
-                            value={question.text}
-                            onChange={(e) =>
-                              updateQuestion(question.id, { text: e.target.value })
-                            }
-                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                          />
-                        </div>
+                {formData.questions
+                  .filter((q) => q.targetRole === "PARTICIPANT")
+                  .map((question) => (
+                    <div
+                      key={question.id}
+                      className="border border-gray-200 rounded-lg p-4 space-y-4"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 space-y-4">
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">
+                              Question Text
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="e.g., What is your dietary preference?"
+                              value={question.text}
+                              onChange={(e) =>
+                                updateQuestion(question.id, { text: e.target.value })
+                              }
+                              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                            />
+                          </div>
 
-                        <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">
                               Question Type
@@ -388,75 +424,193 @@ export default function CreateEventPage() {
                               <option value="MULTISELECT">Multiple Select</option>
                             </select>
                           </div>
+
+                          {question.type !== "TEXT" && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <label className="block text-xs font-semibold text-gray-500 uppercase">
+                                  Options
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() => addOption(question.id)}
+                                  className="text-xs text-slate-900 hover:text-slate-700 font-semibold"
+                                >
+                                  + Add Option
+                                </button>
+                              </div>
+                              <div className="space-y-2">
+                                {question.options.map((option, index) => (
+                                  <div key={index} className="flex gap-2">
+                                    <input
+                                      type="text"
+                                      placeholder={`Option ${index + 1}`}
+                                      value={option}
+                                      onChange={(e) =>
+                                        updateOption(question.id, index, e.target.value)
+                                      }
+                                      className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => removeOption(question.id, index)}
+                                      className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                    >
+                                      <X className="w-4 h-4 text-red-500" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => deleteQuestion(question.id)}
+                          className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <X className="w-4 h-4 text-red-500" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+
+          {/* Questions Section - Volunteers */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Questions for Volunteers</h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Add questions that volunteers will answer when signing up
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const newQuestion: Question = {
+                    id: Date.now().toString(),
+                    text: "",
+                    type: "TEXT",
+                    options: [],
+                    targetRole: "VOLUNTEER",
+                  };
+                  setFormData((prev) => ({
+                    ...prev,
+                    questions: [...prev.questions, newQuestion],
+                  }));
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors text-sm font-semibold"
+              >
+                <Plus className="w-4 h-4" />
+                Add Question
+              </button>
+            </div>
+
+            {formData.questions.filter((q) => q.targetRole === "VOLUNTEER").length === 0 ? (
+              <p className="text-sm text-gray-500 py-4 text-center">
+                No questions added yet. Click "Add Question" to get started.
+              </p>
+            ) : (
+              <div className="space-y-6">
+                {formData.questions
+                  .filter((q) => q.targetRole === "VOLUNTEER")
+                  .map((question) => (
+                    <div
+                      key={question.id}
+                      className="border border-gray-200 rounded-lg p-4 space-y-4"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 space-y-4">
                           <div>
                             <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">
-                              Target Role
+                              Question Text
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="e.g., What is your previous volunteering experience?"
+                              value={question.text}
+                              onChange={(e) =>
+                                updateQuestion(question.id, { text: e.target.value })
+                              }
+                              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">
+                              Question Type
                             </label>
                             <select
-                              value={question.targetRole}
+                              value={question.type}
                               onChange={(e) =>
                                 updateQuestion(question.id, {
-                                  targetRole: e.target.value as "PARTICIPANT" | "VOLUNTEER",
+                                  type: e.target.value as "TEXT" | "SELECT" | "MULTISELECT",
+                                  options:
+                                    e.target.value === "TEXT" ? [] : question.options,
                                 })
                               }
                               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
                             >
-                              <option value="PARTICIPANT">Participants</option>
-                              <option value="VOLUNTEER">Volunteers</option>
+                              <option value="TEXT">Text Input</option>
+                              <option value="SELECT">Single Select</option>
+                              <option value="MULTISELECT">Multiple Select</option>
                             </select>
                           </div>
+
+                          {question.type !== "TEXT" && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <label className="block text-xs font-semibold text-gray-500 uppercase">
+                                  Options
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() => addOption(question.id)}
+                                  className="text-xs text-slate-900 hover:text-slate-700 font-semibold"
+                                >
+                                  + Add Option
+                                </button>
+                              </div>
+                              <div className="space-y-2">
+                                {question.options.map((option, index) => (
+                                  <div key={index} className="flex gap-2">
+                                    <input
+                                      type="text"
+                                      placeholder={`Option ${index + 1}`}
+                                      value={option}
+                                      onChange={(e) =>
+                                        updateOption(question.id, index, e.target.value)
+                                      }
+                                      className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => removeOption(question.id, index)}
+                                      className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                    >
+                                      <X className="w-4 h-4 text-red-500" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
 
-                        {question.type !== "TEXT" && (
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <label className="block text-xs font-semibold text-gray-500 uppercase">
-                                Options
-                              </label>
-                              <button
-                                type="button"
-                                onClick={() => addOption(question.id)}
-                                className="text-xs text-slate-900 hover:text-slate-700 font-semibold"
-                              >
-                                + Add Option
-                              </button>
-                            </div>
-                            <div className="space-y-2">
-                              {question.options.map((option, index) => (
-                                <div key={index} className="flex gap-2">
-                                  <input
-                                    type="text"
-                                    placeholder={`Option ${index + 1}`}
-                                    value={option}
-                                    onChange={(e) =>
-                                      updateOption(question.id, index, e.target.value)
-                                    }
-                                    className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => removeOption(question.id, index)}
-                                    className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                                  >
-                                    <X className="w-4 h-4 text-red-500" />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => deleteQuestion(question.id)}
+                          className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <X className="w-4 h-4 text-red-500" />
+                        </button>
                       </div>
-
-                      <button
-                        type="button"
-                        onClick={() => deleteQuestion(question.id)}
-                        className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <X className="w-4 h-4 text-red-500" />
-                      </button>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
           </div>

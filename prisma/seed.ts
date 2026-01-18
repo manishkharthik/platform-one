@@ -84,6 +84,8 @@ async function main() {
       end: new Date("2026-01-06T16:00:00"),
       location: "Main Hall A",
       minTier: "BRONZE",
+      participantCapacity: 25,
+      volunteerCapacity: 5,
       createdById: staff1.id,
       questions: {
         create: [
@@ -117,6 +119,8 @@ async function main() {
       end: new Date("2026-01-08T12:00:00"),
       location: "Central Park",
       minTier: "BRONZE",
+      participantCapacity: 25,
+      volunteerCapacity: 5,
       createdById: staff1.id,
       questions: {
         create: [
@@ -150,6 +154,8 @@ async function main() {
       end: new Date("2026-01-13T16:30:00"),
       location: "Counseling Center Room 201",
       minTier: "SILVER",
+      participantCapacity: 25,
+      volunteerCapacity: 5,
       createdById: staff1.id,
       questions: {
         create: [
@@ -183,6 +189,8 @@ async function main() {
       end: new Date("2026-01-14T12:00:00"),
       location: "Conference Room B",
       minTier: "BRONZE",
+      participantCapacity: 25,
+      volunteerCapacity: 5,
       createdById: staff1.id,
       questions: {
         create: [
@@ -210,6 +218,8 @@ async function main() {
       end: new Date("2026-01-16T17:00:00"),
       location: "Training Center",
       minTier: "GOLD",
+      participantCapacity: 25,
+      volunteerCapacity: 5,
       createdById: staff1.id,
       questions: {
         create: [
@@ -237,6 +247,8 @@ async function main() {
       end: new Date("2026-01-21T14:00:00"),
       location: "Community Center Downtown",
       minTier: "BRONZE",
+      participantCapacity: 25,
+      volunteerCapacity: 5,
       createdById: staff1.id,
       questions: {
         create: [
@@ -264,6 +276,8 @@ async function main() {
       end: new Date("2026-01-23T16:00:00"),
       location: "Main Auditorium",
       minTier: "BRONZE",
+      participantCapacity: 25,
+      volunteerCapacity: 5,
       createdById: staff1.id,
       questions: {
         create: [
@@ -291,6 +305,8 @@ async function main() {
       end: new Date("2026-01-23T13:00:00"),
       location: "Youth Center",
       minTier: "SILVER",
+      participantCapacity: 25,
+      volunteerCapacity: 5,
       createdById: staff1.id,
       questions: {
         create: [
@@ -318,6 +334,8 @@ async function main() {
       end: new Date("2026-01-25T12:00:00"),
       location: "Computer Lab 3",
       minTier: "BRONZE",
+      participantCapacity: 25,
+      volunteerCapacity: 5,
       createdById: staff1.id,
       questions: {
         create: [
@@ -345,6 +363,8 @@ async function main() {
       end: new Date("2026-01-28T17:30:00"),
       location: "Virtual - Zoom Link TBA",
       minTier: "SILVER",
+      participantCapacity: 25,
+      volunteerCapacity: 5,
       createdById: staff1.id,
       questions: {
         create: [
@@ -372,6 +392,8 @@ async function main() {
       end: new Date("2026-01-31T20:00:00"),
       location: "Board Room",
       minTier: "GOLD",
+      participantCapacity: 25,
+      volunteerCapacity: 5,
       createdById: staff1.id,
       questions: {
         create: [

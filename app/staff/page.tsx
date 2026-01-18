@@ -70,10 +70,12 @@ export default function StaffPortalPage() {
             category: "workshops", // Default category - adjust based on your needs
             location: event.location,
             time: startDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-            capacity: 50, // Default capacity - update schema if needed
+            capacity: event.participantCapacity + event.volunteerCapacity, // Total capacity
             registered: bookingCount,
             registeredParticipants: participantCount,
             registeredVolunteers: volunteerCount,
+            participantCapacity: event.participantCapacity,
+            volunteerCapacity: event.volunteerCapacity,
             dbId: event.id, // Store database ID for attendee fetching
           };
         });
