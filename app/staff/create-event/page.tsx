@@ -217,13 +217,17 @@ export default function CreateEventPage() {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to ${isEditMode ? "update" : "create"} event`);
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || `Failed to ${isEditMode ? "update" : "create"} event`;
+        throw new Error(errorMessage);
       }
 
       // Success - redirect back to staff page
       router.push("/staff");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const errorMessage = err instanceof Error ? err.message : "An error occurred";
+      console.error("Error submitting event:", errorMessage);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

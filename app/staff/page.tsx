@@ -177,7 +177,8 @@ export default function StaffPortalPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete event");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete event");
       }
 
       // Remove event from state
@@ -185,8 +186,9 @@ export default function StaffPortalPage() {
       setSelectedEvent(null);
       setSelectedDay(null);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to delete event. Please try again.";
       console.error("Error deleting event:", error);
-      alert("Failed to delete event. Please try again.");
+      alert(errorMessage);
     }
   };
 

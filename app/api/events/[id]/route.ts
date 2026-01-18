@@ -100,7 +100,7 @@ export async function PUT(
   } catch (error) {
     console.error("Error updating event:", error);
     return NextResponse.json(
-      { error: "Failed to update event" },
+      { error: `Failed to update event: ${error instanceof Error ? error.message : "Unknown error"}` },
       { status: 500 }
     );
   }
@@ -116,28 +116,13 @@ export async function DELETE(
     // Check if event exists
     const event = await prisma.event.findUnique({
       where: { id },
-      include: {
-        bookings: true,
-      },
     });
 
     if (!event) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
-    // Delete bookings first (due to foreign key constraint)
-    if (event.bookings.length > 0) {
-      await prisma.booking.deleteMany({
-        where: { eventId: id },
-      });
-    }
-
-    // Delete questions
-    await prisma.question.deleteMany({
-      where: { eventId: id },
-    });
-
-    // Delete event
+    // Delete event (cascade delete will handle bookings, questions, and answers)
     await prisma.event.delete({
       where: { id },
     });
@@ -146,7 +131,7 @@ export async function DELETE(
   } catch (error) {
     console.error("Error deleting event:", error);
     return NextResponse.json(
-      { error: "Failed to delete event" },
+      { error: `Failed to delete event: ${error instanceof Error ? error.message : "Unknown error"}` },
       { status: 500 }
     );
   }

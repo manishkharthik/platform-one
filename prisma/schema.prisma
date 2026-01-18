@@ -43,7 +43,7 @@ model Question {
   targetRole QuestionTargetRole
   eventId    String
   answers    Answer[]
-  event      Event              @relation(fields: [eventId], references: [id])
+  event      Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }
 
 model Booking {
@@ -53,7 +53,7 @@ model Booking {
   userId        String
   eventId       String
   answers       Answer[]
-  event         Event       @relation(fields: [eventId], references: [id])
+  event         Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user          User        @relation(fields: [userId], references: [id])
 
   @@unique([userId, eventId])
@@ -64,8 +64,8 @@ model Answer {
   value      String
   bookingId  String
   questionId String
-  booking    Booking  @relation(fields: [bookingId], references: [id])
-  question   Question @relation(fields: [questionId], references: [id])
+  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([bookingId, questionId])
 }
