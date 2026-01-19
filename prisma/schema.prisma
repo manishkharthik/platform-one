@@ -26,10 +26,10 @@ model Event {
   end                 DateTime
   location            String
   minTier             LoyaltyTier
-  participantCapacity Int         @default(25)
-  volunteerCapacity   Int         @default(5)
   createdAt           DateTime    @default(now())
   createdById         String
+  participantCapacity Int         @default(25)
+  volunteerCapacity   Int         @default(5)
   bookings            Booking[]
   createdBy           User        @relation("CreatedEvents", fields: [createdById], references: [id])
   questions           Question[]
@@ -72,12 +72,6 @@ model ReminderConfirmation {
   @@index([token])
 }
 
-enum ConfirmationStatus {
-  PENDING
-  CONFIRMED
-  DECLINED
-}
-
 model Answer {
   id         String   @id @default(uuid())
   value      String
@@ -87,6 +81,12 @@ model Answer {
   question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([bookingId, questionId])
+}
+
+enum ConfirmationStatus {
+  PENDING
+  CONFIRMED
+  DECLINED
 }
 
 enum UserRole {

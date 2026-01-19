@@ -7,6 +7,7 @@ import Header from "./components/Header";
 import CalendarGrid from "./components/CalendarGrid";
 import EventList from "./components/EventList";
 import AttendanceTable from "./components/AttendanceTable";
+import AIAssistant from "./components/AIAssistant";
 import { CalendarUtils } from "./utils/calendar";
 import { Event, Attendee } from "./types";
 import {
@@ -31,6 +32,50 @@ export default function StaffPortalPage() {
   const [isLoadingAttendees, setIsLoadingAttendees] = useState(false);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
+  const fetchEvents = async () => {
+    try {
+      setIsLoadingEvents(true);
+      const response = await fetch("/api/events");
+      if (!response.ok) throw new Error("Failed to fetch events");
+      const data = await response.json();
+
+      const transformedEvents: Event[] = data.map((event: any, index: number) => {
+        const startDate = new Date(event.start);
+        const bookingCount = event.bookings?.length || 0;
+
+        const participantCount =
+          event.bookings?.filter((b: any) => b.roleAtBooking === "PARTICIPANT").length || 0;
+        const volunteerCount =
+          event.bookings?.filter((b: any) => b.roleAtBooking === "VOLUNTEER").length || 0;
+
+        return {
+          id: index + 1,
+          title: event.name,
+          date: startDate.getDate(),
+          month: startDate.getMonth() + 1,
+          year: startDate.getFullYear(),
+          category: getCategoryFromName(event.name),
+          location: event.location,
+          time: startDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          capacity: event.participantCapacity + event.volunteerCapacity,
+          registered: bookingCount,
+          registeredParticipants: participantCount,
+          registeredVolunteers: volunteerCount,
+          participantCapacity: event.participantCapacity,
+          volunteerCapacity: event.volunteerCapacity,
+          dbId: event.id,
+        };
+      });
+
+      setEvents(transformedEvents);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      setEvents(INITIAL_EVENTS);
+    } finally {
+      setIsLoadingEvents(false);
+    }
+  };
+
   // Check authorization on mount
   useEffect(() => {
     const userRole = localStorage.getItem("userRole");
@@ -45,51 +90,6 @@ export default function StaffPortalPage() {
   // Fetch events from database on mount
   useEffect(() => {
     if (!isAuthorized) return;
-
-    const fetchEvents = async () => {
-      try {
-        setIsLoadingEvents(true);
-        const response = await fetch("/api/events");
-        if (!response.ok) throw new Error("Failed to fetch events");
-        const data = await response.json();
-
-        // Transform database events to calendar format
-        const transformedEvents: Event[] = data.map((event: any, index: number) => {
-          const startDate = new Date(event.start);
-          const bookingCount = event.bookings?.length || 0;
-          
-          // Count participants and volunteers
-          const participantCount = event.bookings?.filter((b: any) => b.roleAtBooking === "PARTICIPANT").length || 0;
-          const volunteerCount = event.bookings?.filter((b: any) => b.roleAtBooking === "VOLUNTEER").length || 0;
-          
-          return {
-            id: index + 1,
-            title: event.name,
-            date: startDate.getDate(),
-            month: startDate.getMonth() + 1,
-            year: startDate.getFullYear(),
-            category: getCategoryFromName(event.name), // Category based on event name
-            location: event.location,
-            time: startDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-            capacity: event.participantCapacity + event.volunteerCapacity, // Total capacity
-            registered: bookingCount,
-            registeredParticipants: participantCount,
-            registeredVolunteers: volunteerCount,
-            participantCapacity: event.participantCapacity,
-            volunteerCapacity: event.volunteerCapacity,
-            dbId: event.id, // Store database ID for attendee fetching
-          };
-        });
-
-        setEvents(transformedEvents);
-      } catch (error) {
-        console.error("Error fetching events:", error);
-        // Fallback to initial events if fetch fails
-        setEvents(INITIAL_EVENTS);
-      } finally {
-        setIsLoadingEvents(false);
-      }
-    };
 
     fetchEvents();
   }, [isAuthorized]);
@@ -249,24 +249,26 @@ export default function StaffPortalPage() {
               onNextMonth={handleNextMonth}
             />
 
-            <EventList
-              events={selectedDayEvents}
-              categories={CATEGORIES}
-              selectedDay={selectedDay}
-              monthName={monthName}
-              selectedEvent={selectedEvent}
-              onEventSelect={setSelectedEvent}
-              onEditEvent={handleEditEvent}
-              onDeleteEvent={handleDeleteEvent}
-            />
-          </section>
+          <EventList
+            events={selectedDayEvents}
+            categories={CATEGORIES}
+            selectedDay={selectedDay}
+            monthName={monthName}
+            selectedEvent={selectedEvent}
+            onEventSelect={setSelectedEvent}
+            onEditEvent={handleEditEvent}
+            onDeleteEvent={handleDeleteEvent}
+          />
+        </section>
 
-          <AttendanceTable
-            attendees={attendees}
-            activeTab={attendanceTab}
-            onTabChange={setAttendanceTab}
-            isLoading={isLoadingAttendees}
-            selectedEventTitle={getSelectedEventTitle()}
+        <AIAssistant onEventCreated={fetchEvents} />
+
+        <AttendanceTable
+          attendees={attendees}
+          activeTab={attendanceTab}
+          onTabChange={setAttendanceTab}
+          isLoading={isLoadingAttendees}
+          selectedEventTitle={getSelectedEventTitle()}
           />
         </div>
       </main>
