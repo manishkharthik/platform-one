@@ -2,50 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    const { searchParams } = new URL(request.url);
-    const roleFilter = searchParams.get("role"); // Optional: filter by role
+    const { id } = await context.params; 
+    const eventId = id;
 
     const bookings = await prisma.booking.findMany({
-      where: {
-        eventId: id,
-        ...(roleFilter && { roleAtBooking: roleFilter as "PARTICIPANT" | "VOLUNTEER" }),
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            tier: true,
-          },
-        },
-        answers: {
-          include: {
-            question: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
+      where: { eventId },
+      include: { user: true },
     });
 
-    // Transform the data to match frontend expectations
-    const attendees = bookings.map((booking) => ({
+    type BookingWithUser = (typeof bookings)[number];
+
+    const attendees = bookings.map((booking: BookingWithUser) => ({
       id: booking.id,
       userId: booking.user.id,
       name: booking.user.name,
       email: booking.user.email,
-      tier: booking.user.tier || "BRONZE",
-      role: booking.roleAtBooking,
-      checkedIn: false, // You can add check-in tracking to the schema if needed
-      dietary: "", // Add dietary preference to schema if needed
-      referral: "", // Add referral source to schema if needed
+      role: booking.user.role,
+      tier: booking.user.tier,
     }));
 
     return NextResponse.json(attendees);
