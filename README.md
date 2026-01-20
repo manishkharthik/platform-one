@@ -49,12 +49,12 @@ To populate tables with initial values, you can seed the database by running:
 npx prisma db seed
 ```
 
-Test users (all use password: 123456):
-   Participant: walter@participant.com / 123456 (Walter Sullivan - GOLD)
-   Participant: sarah@participant.com / 123456 (Sarah Johnson - SILVER)
-   Volunteer: mike@volunteer.com / 123456 (Mike Chen - PLATINUM)
-   Volunteer: lisa@volunteer.com / 123456 (Lisa Wong - GOLD)
-   Staff: admin@staff.com / 123456 (Admin User - PLATINUM)
+Test users (all use password and access code: 123456):
+   - Participant: walter@participant.com / 123456 (Walter Sullivan - GOLD)
+   - Participant: sarah@participant.com / 123456 (Sarah Johnson - SILVER)
+   - Volunteer: mike@volunteer.com / 123456 (Mike Chen - PLATINUM)
+   - Volunteer: lisa@volunteer.com / 123456 (Lisa Wong - GOLD)
+   - Staff: admin@staff.com / 123456 (Admin User - PLATINUM)
 
 6. Run the Development Server
    
