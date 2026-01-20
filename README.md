@@ -1,5 +1,5 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
+# Problem Statement: MINDS 1
 ## Getting Started
 
 1. Clone the Repository
@@ -67,6 +67,10 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+### NOTE
+
+The AI-event schedule feature is not available locally, as GEMINI_API keys cannot be exposed in the repo.
 
 ## Learn More
 
