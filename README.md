@@ -2,21 +2,62 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the Repository
+
+First, you need to clone the project repository from GitHub to your local machine. Open your terminal and run:
+
+```bash
+git clone https://github.com/manishkharthik/platform-one
+```
+
+This will create a local copy of the repository on your machine.
+
+2. Install Dependencies
+   
+After cloning the repository, navigate into the project directory and install all required dependencies. Run the following commands:
+
+```bash
+cd platform-one
+npm install
+```
+
+3. Generate Prisma Client
+   
+Prisma is used to interact with the database. You need to generate the Prisma client using the following command:
+
+```bash
+npx prisma generate 
+```
+
+This will generate the Prisma client, which is responsible for interacting with the database.
+
+4. Pull Database Schema
+   
+Next, you need to sync your local Prisma schema with the database schema to ensure everything is up to date. Run:
+
+```bash
+npx prisma db pull
+```
+
+This will pull the schema from the database and update your Prisma schema file.
+
+5. Seed the Database
+   
+To populate tables with initial values, you can seed the database by running:
+
+```bash
+npx prisma db seed
+```
+
+6. Run the Development Server
+   
+Finally, you can run the development server to start the project and view it in your browser. Run:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
