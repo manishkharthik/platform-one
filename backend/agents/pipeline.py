@@ -65,19 +65,32 @@ async def run_discovery_pipeline(campaign: Campaign, db):
     for task in plan:
         await emit(cid, f"   → {task['source']}: {task['url']}")
 
-    # Run scrapers sequentially — emit after each so the SSE stream stays alive
+    # Run scrapers in parallel batches — fast but keeps SSE alive between batches
+    BATCH_SIZE = 5
     raw_leads = []
-    for task in plan:
-        source = task["source"]
-        await emit(cid, f"🌐 Scraping {source}...")
-        try:
-            result = await run_tinyfish_task(task["url"], task["goal"])
-            await emit(cid, f"✅ {source}: found {len(result)} companies")
-            for r in result:
-                r.setdefault("source", source)
-            raw_leads.extend(result)
-        except Exception as e:
-            await emit(cid, f"⚠️ {source} scrape failed: {str(e)[:80]}")
+    batches = [plan[i:i + BATCH_SIZE] for i in range(0, len(plan), BATCH_SIZE)]
+    await emit(cid, f"⚡ Running {len(plan)} sources in batches of {BATCH_SIZE}...")
+
+    for batch_num, batch in enumerate(batches, 1):
+        await emit(cid, f"📦 Batch {batch_num}/{len(batches)}: {', '.join(t['source'] for t in batch)}")
+
+        async def scrape_task(task):
+            try:
+                result = await run_tinyfish_task(task["url"], task["goal"])
+                for r in result:
+                    r.setdefault("source", task["source"])
+                return task["source"], result, None
+            except Exception as e:
+                return task["source"], [], str(e)
+
+        batch_results = await asyncio.gather(*[scrape_task(t) for t in batch])
+
+        for source, results, error in batch_results:
+            if error:
+                await emit(cid, f"⚠️ {source} failed: {error[:80]}")
+            else:
+                await emit(cid, f"✅ {source}: found {len(results)} companies")
+                raw_leads.extend(results)
 
     # Fallback to mock data if all scrapers failed
     if not raw_leads:
