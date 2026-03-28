@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Upload, X, FileText } from "lucide-react";
+import { Upload, X, FileText, ArrowLeft } from "lucide-react";
 import { api } from "../api/client";
 
 export default function AddProduct() {
@@ -53,7 +53,13 @@ export default function AddProduct() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="px-8 py-5">
+      <div className="px-8 py-5 flex items-center gap-3">
+        <button
+          onClick={() => navigate(-1)}
+          className="text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <ArrowLeft size={18} />
+        </button>
         <div className="flex items-center gap-2">
           <span className="text-xl">🪝</span>
           <span className="font-bold text-gray-900 text-base">Fishhook</span>

@@ -44,7 +44,7 @@ export default function ConfirmICP() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="px-8 py-5 flex items-center gap-3">
-        <button onClick={() => navigate("/")} className="text-gray-400 hover:text-gray-600">
+        <button onClick={() => navigate("/products/new")} className="text-gray-400 hover:text-gray-600">
           <ArrowLeft size={18} />
         </button>
         <div className="flex items-center gap-2">
@@ -166,7 +166,7 @@ export default function ConfirmICP() {
         <div className="flex items-center justify-between mt-6">
           <button
             className="text-sm text-gray-500 hover:text-gray-700"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/products/new")}
           >
             Cancel and reset
           </button>

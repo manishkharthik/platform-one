@@ -54,3 +54,13 @@ def update_product(product_id: str, data: ProductCreate, db: Session = Depends(g
     db.commit()
     db.refresh(product)
     return product
+
+
+@router.delete("/products/{product_id}")
+def delete_product(product_id: str, db: Session = Depends(get_db)):
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    db.delete(product)
+    db.commit()
+    return {"ok": True}

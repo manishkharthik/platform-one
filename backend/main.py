@@ -2,10 +2,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import campaigns, leads, stream, documents, products
 from database import engine, Base
-
-Base.metadata.create_all(bind=engine)
+import logging
 
 app = FastAPI(title="FishHook")
+
+@app.on_event("startup")
+async def startup_event():
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        logging.warning(f"DB init skipped (connection failed): {e}")
 
 app.add_middleware(
     CORSMiddleware,
