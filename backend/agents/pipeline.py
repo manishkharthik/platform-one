@@ -58,7 +58,9 @@ async def run_discovery_pipeline(campaign: Campaign, db):
 
     # Use OpenAI to generate a dynamic scraping plan
     await emit(cid, "🧠 Planning scraping strategy with AI...")
-    plan = await generate_scraping_plan(campaign, product)
+    plan, reasoning = await generate_scraping_plan(campaign, product)
+    if reasoning:
+        await emit(cid, f"💡 Strategy: {reasoning}")
     await emit(cid, f"🔍 Launching TinyFish agents across {len(plan)} sources...")
     for task in plan:
         await emit(cid, f"   → {task['source']}: {task['url']}")

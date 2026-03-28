@@ -30,12 +30,6 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
-.env
-.env.*
-!.env.example
-app/.env
-
 # Python
 __pycache__/
 *.py[cod]
