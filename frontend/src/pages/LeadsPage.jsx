@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Search, Filter, Download, Send, X, ChevronRight, Bot, RefreshCw, CheckCircle } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import { api } from "../api/client";
@@ -35,6 +35,160 @@ function SourceBadge({ source }) {
     <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-xs font-medium">
       {map[source] || source}
     </span>
+  );
+}
+
+// ── Mock email thread data ────────────────────────────────────────────────
+const MOCK_THREADS = {
+  w1: {
+    subject: "Quick question about your go-to-market stack",
+    sent: `Hi Marcus,\n\nCame across Helix AI on Crunchbase — congrats on the Series A. Impressive momentum.\n\nWe help mid-market SaaS teams like yours identify high-intent prospects before your competitors do. Given you're scaling outbound right now, thought it might be worth a quick chat.\n\n15 minutes this week?\n\nBest,\nAlex`,
+    reply: `Hey Alex,\n\nGood timing — we're actually in the middle of evaluating our outbound tooling right now. Would love to see what you're working on.\n\nThursday at 2pm PT works for me.\n\nMarcus`,
+  },
+  w2: {
+    subject: "FishHook × Cascade Labs — worth a look?",
+    sent: `Hi Priya,\n\nSaw Cascade Labs on Product Hunt last week — the compliance angle for fintech is really smart.\n\nWe've been helping similar teams find warm leads before they even post a job req. Curious if that's a pain point on your side as you scale the sales team.\n\nOpen to a quick call?\n\nAlex`,
+    reply: `Alex — yes, actually. We've been struggling to find quality pipeline outside of referrals.\n\nSend me a calendar link and I'll book time.\n\nPriya`,
+  },
+  w3: {
+    subject: "Outbound for infrastructure teams — different approach",
+    sent: `Hi James,\n\nNoticed Orion Compute on HN Hiring — building GPU infra for AI workloads is exactly the kind of company we love working with.\n\nMost outbound tools are built for SaaS sales, not technical buyers. We do things differently. Worth a look?\n\nAlex`,
+    reply: null,
+  },
+  w7: {
+    subject: "Partnership angle for Strata Health",
+    sent: `Hi Lena,\n\nStrata Health's clinical doc product caught my attention — especially the partnerships-led motion you're running.\n\nWe help teams like yours identify integration partners and distribution channels before your competitors do. Relevant?\n\nAlex`,
+    reply: null,
+  },
+};
+
+function getMockThread(lead) {
+  if (MOCK_THREADS[lead.id]) return MOCK_THREADS[lead.id];
+  const firstName = lead.contact_name?.split(" ")[0] || lead.contact_name;
+  return {
+    subject: `Scaling outbound at ${lead.company_name}`,
+    sent: `Hi ${firstName},\n\nCame across ${lead.company_name} and was genuinely impressed by what you're building.\n\nWe help companies in the ${lead.industry || "B2B"} space identify high-intent leads using AI — and given your growth stage, thought there might be a strong fit.\n\nWould you be open to a 15-minute call this week?\n\nBest,\nAlex`,
+    reply: lead.email_status === "replied" || lead.email_status === "opened"
+      ? `Hi Alex,\n\nThanks for reaching out — this is actually quite timely. We've been thinking about how to scale our pipeline without just throwing headcount at it.\n\nLet's find a time. What does your calendar look like?\n\n${firstName}`
+      : null,
+  };
+}
+
+// ── Email Chat Panel ──────────────────────────────────────────────────────
+const chatStatusConfig = {
+  not_sent:  { label: "Not sent",          color: "bg-gray-100 text-gray-500" },
+  approved:  { label: "Ready to send",     color: "bg-blue-100 text-blue-700" },
+  sent:      { label: "Awaiting response", color: "bg-purple-100 text-purple-700" },
+  opened:    { label: "Response opened",   color: "bg-teal-100 text-teal-700" },
+  clicked:   { label: "Response opened",   color: "bg-teal-100 text-teal-700" },
+  replied:   { label: "New reply",         color: "bg-green-100 text-green-700 font-semibold" },
+  bounced:   { label: "Bounced",           color: "bg-red-100 text-red-600" },
+};
+
+function EmailChatPanel({ lead, onClose }) {
+  const thread = getMockThread(lead);
+  const hasSent = lead.email_status !== "not_sent";
+  const hasReply = lead.email_status === "replied" || lead.email_status === "opened";
+  const isUnread = lead.email_status === "replied";
+  const cfg = chatStatusConfig[lead.email_status] || chatStatusConfig.not_sent;
+
+  return (
+    <div className="fixed inset-y-0 right-0 w-[480px] bg-white border-l border-gray-200 shadow-2xl z-50 flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-sm">
+            {lead.contact_name?.[0]?.toUpperCase() || "?"}
+          </div>
+          <div>
+            <div className="font-semibold text-gray-900">{lead.contact_name}</div>
+            <div className="text-xs text-gray-400">{lead.contact_title} · {lead.company_name}</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`text-xs px-2.5 py-1 rounded-full ${cfg.color}`}>{cfg.label}</span>
+          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+            <X size={18} />
+          </button>
+        </div>
+      </div>
+
+      {/* Thread subject */}
+      {hasSent && (
+        <div className="px-5 py-2.5 bg-gray-50 border-b border-gray-100 text-xs text-gray-500">
+          <span className="font-medium text-gray-700">Re: {thread.subject}</span>
+        </div>
+      )}
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+        {!hasSent && (
+          <div className="flex flex-col items-center justify-center h-full text-center gap-2">
+            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 text-xl">✉️</div>
+            <p className="text-sm text-gray-400">No emails sent yet.</p>
+            <p className="text-xs text-gray-300">Approve and send your email to start the conversation.</p>
+          </div>
+        )}
+
+        {hasSent && (
+          /* Outbound email — right aligned */
+          <div className="flex flex-col items-end gap-1">
+            <span className="text-[10px] text-gray-400 mr-1">You · {lead.email_status === "sent" ? "Today" : "Mar 25"}</span>
+            <div className="max-w-[85%] bg-blue-600 text-white rounded-2xl rounded-tr-sm px-4 py-3 text-xs leading-relaxed whitespace-pre-wrap shadow-sm">
+              <p className="font-semibold mb-1 text-blue-100 text-[10px] uppercase tracking-wide">{thread.subject}</p>
+              {thread.sent}
+            </div>
+            {lead.email_status === "sent" && (
+              <span className="text-[10px] text-purple-400 mr-1">✓ Sent · awaiting response</span>
+            )}
+            {(lead.email_status === "opened" || lead.email_status === "clicked") && (
+              <span className="text-[10px] text-teal-500 mr-1">✓✓ Opened</span>
+            )}
+            {hasReply && (
+              <span className="text-[10px] text-gray-400 mr-1">✓✓ Delivered</span>
+            )}
+          </div>
+        )}
+
+        {hasReply && thread.reply && (
+          /* Reply — left aligned */
+          <div className="flex flex-col items-start gap-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-gray-400 ml-1">{lead.contact_name?.split(" ")[0]} · Today</span>
+              {isUnread && (
+                <span className="text-[10px] bg-green-100 text-green-700 font-semibold px-1.5 py-0.5 rounded-full">New</span>
+              )}
+            </div>
+            <div className={`max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-3 text-xs leading-relaxed whitespace-pre-wrap shadow-sm border ${
+              isUnread ? "bg-green-50 border-green-200 text-gray-800" : "bg-white border-gray-200 text-gray-700"
+            }`}>
+              {thread.reply}
+            </div>
+          </div>
+        )}
+
+        {lead.email_status === "sent" && (
+          <div className="flex justify-center">
+            <span className="text-[10px] text-gray-300 bg-gray-50 px-3 py-1.5 rounded-full">Waiting for {lead.contact_name?.split(" ")[0]} to reply...</span>
+          </div>
+        )}
+      </div>
+
+      {/* Reply input (disabled for demo) */}
+      <div className="border-t border-gray-100 p-4">
+        <div className="flex gap-2 items-center">
+          <input
+            disabled
+            className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-400 placeholder-gray-300 cursor-not-allowed"
+            placeholder={hasReply ? `Reply to ${lead.contact_name?.split(" ")[0]}...` : "Send your email first to start the conversation"}
+          />
+          <button disabled className="p-2.5 bg-gray-100 text-gray-300 rounded-xl cursor-not-allowed">
+            <Send size={14} />
+          </button>
+        </div>
+        <p className="text-[10px] text-gray-300 text-center mt-2">Connect Gmail to send replies from this thread</p>
+      </div>
+    </div>
   );
 }
 
@@ -198,9 +352,9 @@ function LeadDetail({ lead, onClose, onAction }) {
 }
 
 // ── AI Chat Panel ─────────────────────────────────────────────────────────
-function AIChatPanel({ campaignId, leads }) {
+function AIChatPanel({ campaignId, leads, aiFilter, onFilter, onReset, onOpenChat }) {
   const [messages, setMessages] = useState([
-    { role: "ai", text: "Use AI to help with your leads. Try: \"Select all leads with score above 80\" or \"How many have replied?\"" }
+    { role: "ai", text: "Ask me about your leads. Try: \"Show leads above 80\", \"Filter replied\", or \"Open email for Helix AI\"." }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -208,16 +362,30 @@ function AIChatPanel({ campaignId, leads }) {
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-  const send = async () => {
-    if (!input.trim() || loading) return;
-    const msg = input.trim();
+  const send = async (overrideMsg) => {
+    const msg = (overrideMsg || input).trim();
+    if (!msg || loading) return;
     setInput("");
     setMessages((m) => [...m, { role: "user", text: msg }]);
     setLoading(true);
     try {
-      const tableState = leads.map((l) => ({ company: l.company_name, score: l.icp_score, status: l.email_status, source: l.source }));
+      const tableState = leads.map((l) => ({ company: l.company_name, contact_title: l.contact_title, score: l.icp_score, status: l.email_status, source: l.source, industry: l.industry, funding_stage: l.funding_stage }));
       const result = await api.chatWithLeads(campaignId, msg, tableState);
-      setMessages((m) => [...m, { role: "ai", text: result.message || "Done." }]);
+
+      if (result.action === "filter" && result.filter) {
+        onFilter(result.filter);
+        setMessages((m) => [...m, { role: "ai", text: result.message || "Filter applied.", tag: "filter" }]);
+      } else if (result.action === "email" && result.lead) {
+        const target = leads.find((l) => l.company_name?.toLowerCase().includes(result.lead.toLowerCase()));
+        if (target) {
+          onOpenChat(target);
+          setMessages((m) => [...m, { role: "ai", text: result.message || `Opening email thread for ${result.lead}.`, tag: "email" }]);
+        } else {
+          setMessages((m) => [...m, { role: "ai", text: `Couldn't find a lead matching "${result.lead}".` }]);
+        }
+      } else {
+        setMessages((m) => [...m, { role: "ai", text: result.message || "Done." }]);
+      }
     } catch {
       setMessages((m) => [...m, { role: "ai", text: "Something went wrong. Please try again." }]);
     }
@@ -227,19 +395,42 @@ function AIChatPanel({ campaignId, leads }) {
   return (
     <div className="w-72 shrink-0 bg-white border-l border-gray-100 flex flex-col">
       <div className="px-4 py-3.5 border-b border-gray-100">
-        <div className="flex items-center gap-2">
-          <Bot size={16} className="text-blue-500" />
-          <span className="font-semibold text-gray-800 text-sm">Lead AI Assistant</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Bot size={16} className="text-blue-500" />
+            <span className="font-semibold text-gray-800 text-sm">Lead AI Assistant</span>
+          </div>
+          {aiFilter && (
+            <button
+              onClick={onReset}
+              className="text-[10px] px-2 py-1 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-full font-medium transition"
+            >
+              ✕ Clear filter
+            </button>
+          )}
         </div>
-        <p className="text-xs text-gray-400 mt-0.5">Use AI to help with your leads</p>
+        {aiFilter ? (
+          <p className="text-xs text-amber-600 mt-0.5 font-medium">
+            Filtering by {aiFilter.field} {aiFilter.op} {aiFilter.value}
+          </p>
+        ) : (
+          <p className="text-xs text-gray-400 mt-0.5">Use AI to help with your leads</p>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
         {messages.map((m, i) => (
-          <div key={i} className={`rounded-xl px-3.5 py-2.5 text-xs leading-relaxed ${
-            m.role === "ai" ? "bg-gray-50 text-gray-700" : "bg-blue-600 text-white ml-4"
-          }`}>
-            {m.text}
+          <div key={i}>
+            <div className={`rounded-xl px-3.5 py-2.5 text-xs leading-relaxed ${
+              m.role === "ai" ? "bg-gray-50 text-gray-700" : "bg-blue-600 text-white ml-4"
+            }`}>
+              {m.text}
+            </div>
+            {m.tag === "filter" && (
+              <button onClick={onReset} className="mt-1 text-[10px] text-amber-600 hover:text-amber-800 underline ml-1">
+                Reset filter
+              </button>
+            )}
           </div>
         ))}
         {loading && (
@@ -249,9 +440,11 @@ function AIChatPanel({ campaignId, leads }) {
       </div>
 
       <div className="p-3 border-t border-gray-100 space-y-2">
-        <div className="flex gap-1.5">
-          <button onClick={() => setInput("Analyse this lead")} className="flex-1 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs rounded-lg">Analyse this lead</button>
-          <button onClick={() => setInput("Summarise results")} className="flex-1 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs rounded-lg">Summarise</button>
+        <div className="grid grid-cols-2 gap-1.5">
+          <button onClick={() => send("Show leads with score above 80")} className="py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs rounded-lg">High score leads</button>
+          <button onClick={() => send("Filter replied leads")} className="py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs rounded-lg">Replied leads</button>
+          <button onClick={() => send("Summarise results")} className="py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs rounded-lg">Summarise</button>
+          <button onClick={() => send("Which lead should I email first?")} className="py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs rounded-lg">Who to email?</button>
         </div>
         <div className="flex gap-2 items-center">
           <input
@@ -261,7 +454,7 @@ function AIChatPanel({ campaignId, leads }) {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && send()}
           />
-          <button onClick={send} className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <button onClick={() => send()} className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             <ChevronRight size={14} />
           </button>
         </div>
@@ -273,28 +466,64 @@ function AIChatPanel({ campaignId, leads }) {
 // ── Main ─────────────────────────────────────────────────────────────────────
 export default function LeadsPage() {
   const { campaignId } = useParams();
-  const navigate = useNavigate();
+
   const [leads, setLeads] = useState([]);
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(new Set());
   const [activeLead, setActiveLead] = useState(null);
+  const [chatLead, setChatLead] = useState(null);
+  const [whyLead, setWhyLead] = useState(null);
   const [search, setSearch] = useState("");
+  const [aiFilter, setAiFilter] = useState(null);
   const [sending, setSending] = useState(false);
 
+  const normaliseStatuses = (list) =>
+    list.map((l) => l.email_status === "approved" ? { ...l, email_status: "sent" } : l);
+
   const loadLeads = () => {
-    api.getLeads(campaignId).then((data) => { setLeads(Array.isArray(data) ? data : []); setLoading(false); });
-    api.getCampaign(campaignId).then(setCampaign);
+    api.getCampaign(campaignId).then((c) => {
+      setCampaign(c);
+      if (c?.name?.toUpperCase() === "WAYNE") {
+        setLeads(normaliseStatuses(WAYNE_MOCK_LEADS));
+        setLoading(false);
+      } else {
+        api.getLeads(campaignId).then((data) => { setLeads(normaliseStatuses(Array.isArray(data) ? data : [])); setLoading(false); });
+      }
+    });
+  };
+
+  const openChat = (lead) => {
+    if (lead.email_status === "replied") {
+      const updated = { ...lead, email_status: "opened" };
+      setLeads((prev) => prev.map((l) => l.id === lead.id ? updated : l));
+      setChatLead(updated);
+    } else {
+      setChatLead(lead);
+    }
   };
 
   useEffect(() => { loadLeads(); }, [campaignId]);
 
+  const applyAiFilter = (f) => setAiFilter(f);
+  const resetAiFilter = () => setAiFilter(null);
+
   const filtered = leads.filter((l) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (l.company_name || "").toLowerCase().includes(q) ||
-      (l.contact_title || "").toLowerCase().includes(q) ||
-      (l.company_description || "").toLowerCase().includes(q);
+    if (search) {
+      const q = search.toLowerCase();
+      if (!((l.company_name || "").toLowerCase().includes(q) ||
+        (l.contact_title || "").toLowerCase().includes(q) ||
+        (l.company_description || "").toLowerCase().includes(q))) return false;
+    }
+    if (aiFilter) {
+      const { field, op, value } = aiFilter;
+      const fieldVal = { score: l.icp_score, status: l.email_status, source: l.source, industry: l.industry, funding_stage: l.funding_stage }[field];
+      if (op === "gte") return Number(fieldVal) >= Number(value);
+      if (op === "lte") return Number(fieldVal) <= Number(value);
+      if (op === "eq") return String(fieldVal ?? "").toLowerCase() === String(value).toLowerCase();
+      if (op === "contains") return String(fieldVal ?? "").toLowerCase().includes(String(value).toLowerCase());
+    }
+    return true;
   });
 
   const toggleSelect = (id) => {
@@ -357,8 +586,15 @@ export default function LeadsPage() {
             <div className="px-5 py-3 border-b border-gray-100 bg-white flex items-center justify-between">
               <div>
                 <div className="text-xs text-gray-400 font-medium uppercase tracking-wide">Marketing / Leads Pipeline</div>
-                <h1 className="text-lg font-bold text-gray-900">Active Leads</h1>
-                {campaign && <p className="text-xs text-gray-400">Found 1,340 qualified leads based on recent intent data</p>}
+                <div className="flex items-center gap-2">
+                  <h1 className="text-lg font-bold text-gray-900">Active Leads</h1>
+                  {aiFilter && (
+                    <button onClick={resetAiFilter} className="flex items-center gap-1 text-xs px-2.5 py-1 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-full font-medium transition">
+                      {aiFilter.field} {aiFilter.op} {aiFilter.value} <X size={11} />
+                    </button>
+                  )}
+                </div>
+                {campaign && <p className="text-xs text-gray-400">{aiFilter ? `Showing ${filtered.length} filtered leads` : "Found 1,340 qualified leads based on recent intent data"}</p>}
               </div>
               <button className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg">
                 + Add New Lead
@@ -414,10 +650,13 @@ export default function LeadsPage() {
                         <td className="px-4 py-3.5">
                           <SourceBadge source={lead.source} />
                         </td>
-                        <td className="px-4 py-3.5">
-                          <span className={`inline-block px-2.5 py-1 rounded-full text-xs ${statusPills[lead.email_status] || statusPills.not_sent}`}>
+                        <td className="px-4 py-3.5" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => openChat(lead)}
+                            className={`inline-block px-2.5 py-1 rounded-full text-xs cursor-pointer hover:opacity-80 transition-opacity ${statusPills[lead.email_status] || statusPills.not_sent}`}
+                          >
                             {statusLabels[lead.email_status] || "Not sent"}
-                          </span>
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -443,9 +682,17 @@ export default function LeadsPage() {
           </div>
 
           {/* Right: AI Chat */}
-          {!activeLead && <AIChatPanel campaignId={campaignId} leads={leads} />}
+          {!activeLead && <AIChatPanel campaignId={campaignId} leads={leads} aiFilter={aiFilter} onFilter={applyAiFilter} onReset={resetAiFilter} onOpenChat={openChat} />}
         </div>
       </div>
+
+      {/* Email chat panel */}
+      {chatLead && (
+        <>
+          <div className="fixed inset-0 bg-black/20 z-40" onClick={() => setChatLead(null)} />
+          <EmailChatPanel lead={chatLead} onClose={() => setChatLead(null)} />
+        </>
+      )}
 
       {/* Lead detail panel */}
       {activeLead && (

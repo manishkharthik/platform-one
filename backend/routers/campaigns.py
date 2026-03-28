@@ -43,7 +43,7 @@ class GenerateEmailRequest(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str
-    table_state: Optional[dict] = None
+    table_state: Optional[List[dict]] = None
 
 
 @router.post("/campaigns")
@@ -80,17 +80,33 @@ def run_campaign(campaign_id: str, background_tasks: BackgroundTasks, db: Sessio
 @router.post("/campaigns/{campaign_id}/chat")
 async def chat(campaign_id: str, data: ChatRequest, db: Session = Depends(get_db)):
     from ai.scoring import get_client
-    leads = db.query(Lead).filter(Lead.campaign_id == campaign_id).all()
-    table_summary = [
-        {
-            "company": l.company_name,
-            "score": l.icp_score,
-            "status": l.status,
-            "source": l.source,
-            "contact_title": l.contact_title,
-        }
-        for l in leads
-    ]
+
+    # Use table_state from request if provided (covers mock/frontend-only campaigns),
+    # otherwise fall back to DB leads
+    if data.table_state:
+        table_summary = data.table_state
+    else:
+        leads = db.query(Lead).filter(Lead.campaign_id == campaign_id).all()
+        table_summary = [
+            {
+                "company": l.company_name,
+                "score": l.icp_score,
+                "status": l.status,
+                "source": l.source,
+                "contact_title": l.contact_title,
+            }
+            for l in leads
+        ]
+
+    campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+    campaign_context = ""
+    if campaign:
+        campaign_context = f"""
+Campaign: {campaign.name}
+Product: {campaign.company_description or 'N/A'}
+Target industry: {campaign.target_industry or 'N/A'}
+Target titles: {campaign.target_job_titles or []}
+"""
 
     response = await get_client().chat.completions.create(
         model="gpt-4o",
@@ -98,14 +114,28 @@ async def chat(campaign_id: str, data: ChatRequest, db: Session = Depends(get_db
         messages=[
             {
                 "role": "system",
-                "content": """You are an AI assistant for a B2B lead generation platform called FishHook.
-You help users manage their leads table via natural language.
-Always respond with valid JSON: {"message": "<short 1-2 sentence response>", "action": "<filter|select|none>", "filter": {"field": "<score|status|source>", "op": "<gte|lte|eq|contains>", "value": "<value>"}}
-Be concise. Max 2 sentences.""",
+                "content": f"""You are an AI assistant for a B2B lead generation platform called FishHook.
+You have access to the user's leads table and campaign context below.
+Help the user analyse, filter, or act on their leads via natural language.
+{campaign_context}
+Always respond with valid JSON in this exact shape:
+{{
+  "message": "<concise 1-2 sentence answer>",
+  "action": "<filter|email|none>",
+  "filter": {{"field": "<score|status|source|industry|funding_stage>", "op": "<gte|lte|eq|contains>", "value": "<value>"}},
+  "lead": "<exact company name — only set when action is email>"
+}}
+
+Action rules:
+- "filter": when the user wants to narrow down the leads table (e.g. "show high scores", "filter replied leads"). Set filter.field/op/value accordingly.
+- "email": when the user wants to open the email thread for a specific lead (e.g. "open email for Helix AI", "message Marcus Chen"). Set lead to the company name.
+- "none": analysis, counts, summaries — no table change needed.
+
+Only include filter when action is "filter". Only include lead when action is "email". Be specific and reference actual company names/scores.""",
             },
             {
                 "role": "user",
-                "content": f"Current leads table:\n{json.dumps(table_summary)}\n\nUser command: {data.message}",
+                "content": f"Current leads table ({len(table_summary)} leads):\n{json.dumps(table_summary, indent=2)}\n\nUser: {data.message}",
             },
         ],
     )
