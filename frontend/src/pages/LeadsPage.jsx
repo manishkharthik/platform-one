@@ -24,9 +24,16 @@ const statusLabels = {
   bounced: "Bounced",
 };
 
-function ScorePill({ score }) {
+function ScorePill({ score, onClick }) {
   const cls = score >= 80 ? "bg-green-100 text-green-700" : score >= 60 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600";
-  return <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${cls}`}>{score}</span>;
+  return (
+    <span
+      onClick={onClick}
+      className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${cls} ${onClick ? "cursor-pointer hover:opacity-75 transition-opacity" : ""}`}
+    >
+      {score}
+    </span>
+  );
 }
 
 function SourceBadge({ source }) {
@@ -37,6 +44,130 @@ function SourceBadge({ source }) {
     </span>
   );
 }
+
+// ── Wayne campaign mock leads ─────────────────────────────────────────────
+const WAYNE_MOCK_LEADS = [
+  {
+    id: "w1",
+    company_name: "Helix AI",
+    contact_name: "Marcus Chen",
+    contact_title: "VP of Sales",
+    company_description: "AI-powered revenue intelligence platform for mid-market SaaS.",
+    industry: "SaaS",
+    company_size: "51-200",
+    funding_stage: "Series A",
+    location: "San Francisco, CA",
+    source: "crunchbase",
+    icp_score: 92,
+    icp_reasoning: "Strong ICP match: Series A SaaS, active outbound hiring, revenue-focused team.",
+    email_status: "replied",
+  },
+  {
+    id: "w2",
+    company_name: "Cascade Labs",
+    contact_name: "Priya Mehta",
+    contact_title: "Head of Growth",
+    company_description: "Compliance automation for fintech and healthcare companies.",
+    industry: "Fintech",
+    company_size: "11-50",
+    funding_stage: "Seed",
+    location: "New York, NY",
+    source: "producthunt",
+    icp_score: 87,
+    icp_reasoning: "Fintech compliance niche with strong GTM motion, scaling sales team.",
+    email_status: "replied",
+  },
+  {
+    id: "w3",
+    company_name: "Orion Compute",
+    contact_name: "James Park",
+    contact_title: "CTO",
+    company_description: "GPU infrastructure-as-a-service for AI model training and inference.",
+    industry: "Infrastructure",
+    company_size: "11-50",
+    funding_stage: "Pre-seed",
+    location: "Austin, TX",
+    source: "hn_hiring",
+    icp_score: 81,
+    icp_reasoning: "Technical buyer in AI infra — high intent based on HN hiring post.",
+    email_status: "opened",
+  },
+  {
+    id: "w4",
+    company_name: "Pulsar Analytics",
+    contact_name: "Sarah Kim",
+    contact_title: "Director of Marketing",
+    company_description: "Real-time customer analytics for e-commerce and D2C brands.",
+    industry: "Analytics",
+    company_size: "51-200",
+    funding_stage: "Series A",
+    location: "Seattle, WA",
+    source: "crunchbase",
+    icp_score: 78,
+    icp_reasoning: "Marketing-led motion with active data tooling investment.",
+    email_status: "sent",
+  },
+  {
+    id: "w5",
+    company_name: "Vanta Security",
+    contact_name: "Tom Rivera",
+    contact_title: "VP of Business Development",
+    company_description: "Automated security compliance and trust management platform.",
+    industry: "Security",
+    company_size: "200-500",
+    funding_stage: "Series B",
+    location: "San Francisco, CA",
+    source: "producthunt",
+    icp_score: 74,
+    icp_reasoning: "Large buyer with outbound team — compliance story resonates.",
+    email_status: "sent",
+  },
+  {
+    id: "w6",
+    company_name: "Forge Platform",
+    contact_name: "Aisha Johnson",
+    contact_title: "Head of Partnerships",
+    company_description: "Developer platform for building and deploying internal tools.",
+    industry: "DevTools",
+    company_size: "11-50",
+    funding_stage: "Seed",
+    location: "Remote",
+    source: "github",
+    icp_score: 69,
+    icp_reasoning: "High GitHub engagement — dev-led growth with strong partnership potential.",
+    email_status: "not_sent",
+  },
+  {
+    id: "w7",
+    company_name: "Strata Health",
+    contact_name: "Lena Walsh",
+    contact_title: "CEO",
+    company_description: "AI-assisted clinical documentation for outpatient practices.",
+    industry: "HealthTech",
+    company_size: "11-50",
+    funding_stage: "Seed",
+    location: "Boston, MA",
+    source: "producthunt",
+    icp_score: 83,
+    icp_reasoning: "Healthcare AI niche, founder-led sales, clear outbound intent.",
+    email_status: "not_sent",
+  },
+  {
+    id: "w8",
+    company_name: "Loop Commerce",
+    contact_name: "David Lee",
+    contact_title: "Growth Lead",
+    company_description: "Post-purchase experience platform for Shopify merchants.",
+    industry: "E-commerce",
+    company_size: "11-50",
+    funding_stage: "Pre-seed",
+    location: "Los Angeles, CA",
+    source: "producthunt",
+    icp_score: 65,
+    icp_reasoning: "E-commerce pain point with clear outbound hook on returns flow.",
+    email_status: "not_sent",
+  },
+];
 
 // ── Mock email thread data ────────────────────────────────────────────────
 const MOCK_THREADS = {
@@ -114,19 +245,25 @@ function EmailChatPanel({ lead, onClose }) {
       </div>
 
       {/* Thread subject */}
-      {hasSent && (
-        <div className="px-5 py-2.5 bg-gray-50 border-b border-gray-100 text-xs text-gray-500">
-          <span className="font-medium text-gray-700">Re: {thread.subject}</span>
-        </div>
-      )}
+      <div className="px-5 py-2.5 bg-gray-50 border-b border-gray-100 text-xs text-gray-500 flex items-center gap-2">
+        <span className="font-medium text-gray-700">{hasSent ? "Re: " : "Draft: "}{thread.subject}</span>
+        {!hasSent && <span className="text-[10px] bg-gray-200 text-gray-400 px-1.5 py-0.5 rounded">Not sent</span>}
+      </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
         {!hasSent && (
-          <div className="flex flex-col items-center justify-center h-full text-center gap-2">
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 text-xl">✉️</div>
-            <p className="text-sm text-gray-400">No emails sent yet.</p>
-            <p className="text-xs text-gray-300">Approve and send your email to start the conversation.</p>
+          /* Not sent state */
+          <div className="flex flex-col items-end gap-1 opacity-50">
+            <span className="text-[10px] text-gray-400 mr-1">You · Draft</span>
+            <div className="max-w-[85%] bg-gray-200 text-gray-500 rounded-2xl rounded-tr-sm px-4 py-3 text-xs leading-relaxed whitespace-pre-wrap shadow-sm">
+              <p className="font-semibold mb-1 text-gray-400 text-[10px] uppercase tracking-wide">{thread.subject}</p>
+              {thread.sent}
+            </div>
+            <span className="text-[10px] text-gray-400 mr-1 flex items-center gap-1">
+              <span className="w-3 h-3 rounded-full border border-gray-300 inline-block" />
+              Not sent
+            </span>
           </div>
         )}
 
@@ -139,13 +276,23 @@ function EmailChatPanel({ lead, onClose }) {
               {thread.sent}
             </div>
             {lead.email_status === "sent" && (
-              <span className="text-[10px] text-purple-400 mr-1">✓ Sent · awaiting response</span>
+              <span className="text-[10px] text-purple-500 mr-1 flex items-center gap-1">
+                <span>✓</span> <span>Sent · awaiting reply</span>
+              </span>
             )}
             {(lead.email_status === "opened" || lead.email_status === "clicked") && (
-              <span className="text-[10px] text-teal-500 mr-1">✓✓ Opened</span>
+              <span className="text-[10px] text-teal-500 mr-1 flex items-center gap-1">
+                <span>✓✓</span> <span>Opened</span>
+              </span>
             )}
             {hasReply && (
-              <span className="text-[10px] text-gray-400 mr-1">✓✓ Delivered</span>
+              <span className="text-[10px] text-green-500 mr-1 flex items-center gap-1">
+                <span>✓✓</span>
+                {isUnread
+                  ? <strong className="font-bold">Replied ●</strong>
+                  : <span>Opened</span>
+                }
+              </span>
             )}
           </div>
         )}
@@ -156,7 +303,7 @@ function EmailChatPanel({ lead, onClose }) {
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] text-gray-400 ml-1">{lead.contact_name?.split(" ")[0]} · Today</span>
               {isUnread && (
-                <span className="text-[10px] bg-green-100 text-green-700 font-semibold px-1.5 py-0.5 rounded-full">New</span>
+                <span className="text-[10px] bg-green-100 text-green-700 font-bold px-1.5 py-0.5 rounded-full">Replied ●</span>
               )}
             </div>
             <div className={`max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-3 text-xs leading-relaxed whitespace-pre-wrap shadow-sm border ${
@@ -164,6 +311,9 @@ function EmailChatPanel({ lead, onClose }) {
             }`}>
               {thread.reply}
             </div>
+            {!isUnread && (
+              <span className="text-[10px] text-teal-500 ml-1">Opened</span>
+            )}
           </div>
         )}
 
@@ -504,6 +654,12 @@ export default function LeadsPage() {
   };
 
   useEffect(() => { loadLeads(); }, [campaignId]);
+  useEffect(() => {
+    if (!whyLead) return;
+    const close = () => setWhyLead(null);
+    window.addEventListener("click", close);
+    return () => window.removeEventListener("click", close);
+  }, [whyLead]);
 
   const applyAiFilter = (f) => setAiFilter(f);
   const resetAiFilter = () => setAiFilter(null);
@@ -623,7 +779,7 @@ export default function LeadsPage() {
                     {filtered.map((lead) => (
                       <tr
                         key={lead.id}
-                        onClick={() => setActiveLead(lead)}
+                        onClick={() => openChat(lead)}
                         className={`border-b border-gray-50 hover:bg-blue-50/40 cursor-pointer transition-colors ${
                           lead.email_status === "replied" ? "border-l-4 border-l-green-400" : ""
                         } ${selected.has(lead.id) ? "bg-blue-50" : "bg-white"}`}
@@ -639,10 +795,27 @@ export default function LeadsPage() {
                           <div className="font-semibold text-gray-900">{lead.company_name}</div>
                           <div className="text-xs text-gray-400 mt-0.5 max-w-[180px] truncate">{lead.company_description}</div>
                         </td>
-                        <td className="px-4 py-3.5">
-                          <div title={lead.icp_reasoning}>
-                            <ScorePill score={lead.icp_score} />
-                          </div>
+                        <td className="px-4 py-3.5 relative" onClick={(e) => e.stopPropagation()}>
+                          <ScorePill
+                            score={lead.icp_score}
+                            onClick={() => setWhyLead(whyLead?.id === lead.id ? null : lead)}
+                          />
+                          {whyLead?.id === lead.id && (
+                            <div className="absolute left-0 top-full mt-1 z-50 w-64 bg-white border border-gray-200 rounded-xl shadow-lg p-3.5 text-xs text-gray-700 leading-relaxed">
+                              <div className="flex items-center gap-1.5 mb-2">
+                                <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${lead.icp_score >= 80 ? "bg-green-100 text-green-700" : lead.icp_score >= 60 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600"}`}>
+                                  {lead.icp_score} ICP Score
+                                </span>
+                              </div>
+                              <p>{lead.icp_reasoning || "No reasoning available."}</p>
+                              <button
+                                onClick={() => setWhyLead(null)}
+                                className="mt-2.5 text-[10px] text-gray-400 hover:text-gray-600"
+                              >
+                                Dismiss
+                              </button>
+                            </div>
+                          )}
                         </td>
                         <td className="px-4 py-3.5 max-w-[200px]">
                           <p className="text-xs text-gray-500 truncate" title={lead.icp_reasoning}>{lead.icp_reasoning}</p>
@@ -650,13 +823,10 @@ export default function LeadsPage() {
                         <td className="px-4 py-3.5">
                           <SourceBadge source={lead.source} />
                         </td>
-                        <td className="px-4 py-3.5" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            onClick={() => openChat(lead)}
-                            className={`inline-block px-2.5 py-1 rounded-full text-xs cursor-pointer hover:opacity-80 transition-opacity ${statusPills[lead.email_status] || statusPills.not_sent}`}
-                          >
+                        <td className="px-4 py-3.5">
+                          <span className={`inline-block px-2.5 py-1 rounded-full text-xs ${statusPills[lead.email_status] || statusPills.not_sent}`}>
                             {statusLabels[lead.email_status] || "Not sent"}
-                          </button>
+                          </span>
                         </td>
                       </tr>
                     ))}
