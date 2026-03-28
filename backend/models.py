@@ -5,6 +5,17 @@ import uuid
 from datetime import datetime
 
 
+class UserIntegration(Base):
+    __tablename__ = "user_integrations"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    provider = Column(String(50), nullable=False)   # "gmail"
+    email = Column(String(255), nullable=False)
+    access_token = Column(Text, nullable=False)
+    refresh_token = Column(Text, nullable=True)
+    created_at = Column(TIMESTAMP, default=datetime.now)
+
+
 class Product(Base):
     __tablename__ = "products"
 

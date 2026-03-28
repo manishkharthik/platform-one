@@ -8,6 +8,7 @@ import AgentFeed from "./pages/AgentFeed";
 import LeadsPage from "./pages/LeadsPage";
 import Inbox from "./pages/Inbox";
 import ProductsPage from "./pages/ProductsPage";
+import Settings from "./pages/Settings";
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="/campaigns/:campaignId/leads" element={<LeadsPage />} />
         <Route path="/leads" element={<LeadsPage />} />
         <Route path="/inbox" element={<Inbox />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>

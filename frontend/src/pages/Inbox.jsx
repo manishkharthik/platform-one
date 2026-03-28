@@ -47,10 +47,14 @@ export default function Inbox() {
   const handleSend = async () => {
     if (!reply.trim() || !active) return;
     setSending(true);
-    // Mock send — just clear the reply box
-    await new Promise((r) => setTimeout(r, 800));
-    setReply("");
-    setSending(false);
+    try {
+      await api.sendReply(active.email_id, reply);
+      setReply("");
+    } catch (e) {
+      alert(e.message || "Failed to send. Make sure Gmail is connected in Settings.");
+    } finally {
+      setSending(false);
+    }
   };
 
   const unread = threads.filter((t) => !t.is_read).length;

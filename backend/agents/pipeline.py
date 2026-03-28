@@ -2,13 +2,9 @@ import asyncio
 import json
 import os
 from pathlib import Path
-from models import Campaign, Lead, Email
-from agents.tinyfish import (
-    scrape_producthunt,
-    scrape_crunchbase,
-    scrape_hn_hiring,
-    scrape_github_trending,
-)
+from models import Campaign, Lead, Email, Product
+from agents.tinyfish import run_tinyfish_task, _try_parse_list
+from ai.scraping_planner import generate_scraping_plan
 from ai.scoring import enrich_and_score_lead
 from ai.emails import draft_email_sequence
 
@@ -54,28 +50,32 @@ async def run_discovery_pipeline(campaign: Campaign, db):
     db.commit()
 
     await emit(cid, f"🚀 Starting FishHook pipeline for: {campaign.name}")
-    await emit(cid, "🔍 Launching TinyFish agents across 4 sources...")
 
-    tasks = [
-        scrape_producthunt(campaign.target_industry or "SaaS"),
-        scrape_crunchbase(
-            campaign.target_industry or "SaaS",
-            campaign.target_company_size or "10-200",
-        ),
-        scrape_hn_hiring(campaign.target_keywords or [campaign.target_industry or "tech"]),
-        scrape_github_trending(campaign.target_industry or "tech"),
-    ]
+    # Fetch product for full ICP context
+    product = None
+    if campaign.product_id:
+        product = db.query(Product).filter(Product.id == campaign.product_id).first()
 
-    results = await asyncio.gather(*tasks, return_exceptions=True)
+    # Use OpenAI to generate a dynamic scraping plan
+    await emit(cid, "🧠 Planning scraping strategy with AI...")
+    plan = await generate_scraping_plan(campaign, product)
+    await emit(cid, f"🔍 Launching TinyFish agents across {len(plan)} sources...")
+    for task in plan:
+        await emit(cid, f"   → {task['source']}: {task['url']}")
 
+    # Run scrapers sequentially — emit after each so the SSE stream stays alive
     raw_leads = []
-    source_names = ["Product Hunt", "Crunchbase", "HN Hiring", "GitHub"]
-    for i, result in enumerate(results):
-        if isinstance(result, Exception):
-            await emit(cid, f"⚠️ {source_names[i]} scrape failed: {str(result)[:80]}")
-        else:
-            await emit(cid, f"✅ {source_names[i]}: found {len(result)} companies")
+    for task in plan:
+        source = task["source"]
+        await emit(cid, f"🌐 Scraping {source}...")
+        try:
+            result = await run_tinyfish_task(task["url"], task["goal"])
+            await emit(cid, f"✅ {source}: found {len(result)} companies")
+            for r in result:
+                r.setdefault("source", source)
             raw_leads.extend(result)
+        except Exception as e:
+            await emit(cid, f"⚠️ {source} scrape failed: {str(e)[:80]}")
 
     # Fallback to mock data if all scrapers failed
     if not raw_leads:

@@ -81,4 +81,16 @@ export const api = {
 
   // Inbox
   getInbox: () => fetch(`${BASE}/api/inbox`).then(json),
+  sendReply: (emailId, body) =>
+    fetch(`${BASE}/api/inbox/reply`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email_id: emailId, body }),
+    }).then(json),
+
+  // Auth / integrations
+  getAuthStatus: () => fetch(`${BASE}/api/auth/status`).then(json),
+  connectGmail: () => { window.location.href = `${BASE}/api/auth/gmail`; },
+  disconnectGmail: () =>
+    fetch(`${BASE}/api/auth/gmail`, { method: "DELETE" }).then(json),
 };

@@ -47,14 +47,36 @@ def approve_email(lead_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/leads/{lead_id}/send")
-def send_email(lead_id: str, db: Session = Depends(get_db)):
-    """Mock send - marks email as sent."""
+async def send_email(lead_id: str, db: Session = Depends(get_db)):
+    """Send step-1 email via connected Gmail account."""
+    from models import UserIntegration
+    from email_providers.dispatcher import dispatch_email
+
     email = db.query(Email).filter(
         Email.lead_id == lead_id, Email.sequence_step == 1
     ).first()
     lead = db.query(Lead).filter(Lead.id == lead_id).first()
     if not email or not lead:
         raise HTTPException(status_code=404, detail="Not found")
+
+    if not lead.contact_email:
+        raise HTTPException(status_code=400, detail="Lead has no email address — add one first.")
+
+    integration = db.query(UserIntegration).filter(
+        UserIntegration.provider == "gmail"
+    ).first()
+    if not integration:
+        raise HTTPException(
+            status_code=400,
+            detail="No Gmail account connected. Go to Settings → Integrations to connect Gmail."
+        )
+
+    try:
+        await dispatch_email(lead.contact_email, email.subject, email.body, integration)
+        db.commit()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
     email.is_sent = True
     email.sent_at = datetime.now()
     lead.status = "contacted"
