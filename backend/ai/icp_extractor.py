@@ -11,7 +11,7 @@ def get_client():
 
 
 async def extract_icp_from_text(document_text: str) -> dict:
-    """Read a product document and extract ICP fields using OpenAI."""
+    """Read product content and extract full ICP structure using OpenAI."""
     response = await get_client().chat.completions.create(
         model="gpt-4o",
         response_format={"type": "json_object"},
@@ -23,25 +23,27 @@ async def extract_icp_from_text(document_text: str) -> dict:
             {
                 "role": "user",
                 "content": f"""
-Read this product document and extract the Ideal Customer Profile (ICP).
+Read this product content and extract a comprehensive Ideal Customer Profile (ICP).
 
-DOCUMENT:
-{document_text[:8000]}
+CONTENT:
+{document_text[:12000]}
 
-Extract and return this exact JSON:
+Return this exact JSON structure:
 {{
-  "company_description": "<2-3 sentence description of what the product does and who it helps>",
-  "target_industry": "<primary target industry, e.g. SaaS, Fintech, E-commerce>",
-  "target_company_size": "<ideal company size range, e.g. 10-200>",
+  "description": "<2-3 sentence description of what the product does and who it helps>",
+  "value_proposition": "<the single most compelling thing the product offers, 1 sentence>",
+  "pain_points": ["<pain point 1>", "<pain point 2>", "<pain point 3>", "<pain point 4>"],
+  "target_industries": ["<industry 1>", "<industry 2>", "<industry 3>"],
+  "target_company_size": "<ideal company size range, e.g. 10-200 employees>",
   "target_job_titles": ["<job title 1>", "<job title 2>", "<job title 3>"],
-  "target_keywords": ["<keyword 1>", "<keyword 2>", "<keyword 3>", "<keyword 4>"],
-  "pain_points": ["<pain point 1>", "<pain point 2>", "<pain point 3>"]
+  "buying_signals": ["<signal 1>", "<signal 2>", "<signal 3>"],
+  "keywords": ["<keyword 1>", "<keyword 2>", "<keyword 3>", "<keyword 4>"],
+  "competitors": ["<competitor 1>", "<competitor 2>"]
 }}
 
-Be specific and actionable. These fields will be used to find real buyers on the internet.
+Be specific and actionable. Every field will be used to find real buyers.
                 """,
             },
         ],
     )
-
     return json.loads(response.choices[0].message.content)

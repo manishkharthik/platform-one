@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import campaigns, leads, stream, documents
+from routers import campaigns, leads, stream, documents, products
 from database import engine, Base
 
 Base.metadata.create_all(bind=engine)
@@ -14,6 +14,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(products.router, prefix="/api")
 app.include_router(campaigns.router, prefix="/api")
 app.include_router(leads.router, prefix="/api")
 app.include_router(stream.router, prefix="/api")

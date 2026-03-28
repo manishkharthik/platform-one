@@ -1,4 +1,5 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from typing import List, Optional
 from ai.icp_extractor import extract_icp_from_text
 import io
 
@@ -6,52 +7,46 @@ router = APIRouter()
 
 
 def extract_text_from_file(file_bytes: bytes, filename: str) -> str:
-    """Extract plain text from uploaded file (PDF or text)."""
     if filename.lower().endswith(".pdf"):
         try:
             from pypdf import PdfReader
-
             reader = PdfReader(io.BytesIO(file_bytes))
-            pages = [page.extract_text() or "" for page in reader.pages]
-            return "\n\n".join(pages)
+            return "\n\n".join(page.extract_text() or "" for page in reader.pages)
         except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Failed to parse PDF: {str(e)}")
+            raise HTTPException(status_code=400, detail=f"Failed to parse PDF: {e}")
     else:
-        # Treat as plain text (txt, md, etc.)
-        try:
-            return file_bytes.decode("utf-8", errors="ignore")
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Failed to read file: {str(e)}")
+        return file_bytes.decode("utf-8", errors="ignore")
 
 
-@router.post("/documents/upload")
-async def upload_document(file: UploadFile = File(...)):
-    """Accept a product document, extract text, and return AI-extracted ICP fields."""
-    allowed_types = {
-        "application/pdf",
-        "text/plain",
-        "text/markdown",
-        "application/octet-stream",
-    }
-    allowed_extensions = {".pdf", ".txt", ".md"}
+@router.post("/documents/analyze")
+async def analyze_documents(
+    files: Optional[List[UploadFile]] = File(default=None),
+    description: Optional[str] = Form(default=None),
+):
+    """Accept multiple product files + optional text description. Returns extracted ICP."""
+    if not files and not description:
+        raise HTTPException(status_code=400, detail="Provide at least one file or a description.")
 
-    filename = file.filename or ""
-    ext = "." + filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    all_text = ""
 
-    if ext not in allowed_extensions:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unsupported file type. Upload a PDF or text file.",
-        )
+    if files:
+        for file in files:
+            filename = file.filename or ""
+            ext = ("." + filename.rsplit(".", 1)[-1].lower()) if "." in filename else ""
+            allowed = {".pdf", ".txt", ".md", ".docx", ".pptx"}
+            if ext not in allowed:
+                raise HTTPException(status_code=400, detail=f"Unsupported file: {filename}")
+            content = await file.read()
+            if len(content) > 10 * 1024 * 1024:
+                raise HTTPException(status_code=400, detail=f"{filename} exceeds 10MB limit")
+            all_text += f"\n\n--- {filename} ---\n"
+            all_text += extract_text_from_file(content, filename)
 
-    file_bytes = await file.read()
-    if len(file_bytes) > 10 * 1024 * 1024:  # 10MB limit
-        raise HTTPException(status_code=400, detail="File too large (max 10MB)")
+    if description:
+        all_text += f"\n\n--- User Description ---\n{description}"
 
-    document_text = extract_text_from_file(file_bytes, filename)
+    if not all_text.strip():
+        raise HTTPException(status_code=400, detail="Could not extract text from provided content")
 
-    if not document_text.strip():
-        raise HTTPException(status_code=400, detail="Could not extract text from document")
-
-    icp = await extract_icp_from_text(document_text)
+    icp = await extract_icp_from_text(all_text)
     return {"icp": icp}
