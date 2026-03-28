@@ -34,6 +34,17 @@ yarn-error.log*
 .env
 .env.*
 !.env.example
+app/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+backend/.venv/
+
+# Frontend build artifacts
+frontend/node_modules/
 
 # vercel
 .vercel
