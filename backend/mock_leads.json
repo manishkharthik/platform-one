@@ -1,0 +1,87 @@
+[
+  {
+    "name": "Tome",
+    "tagline": "AI-powered storytelling for teams",
+    "website": "https://tome.app",
+    "description": "Narrative presentation tool that uses AI to turn prompts into compelling decks.",
+    "upvotes": 1200,
+    "source": "producthunt"
+  },
+  {
+    "name": "Runway",
+    "tagline": "AI creative tools for video and image generation",
+    "website": "https://runwayml.com",
+    "description": "Professional AI tools for content creators and marketing teams.",
+    "upvotes": 980,
+    "source": "producthunt"
+  },
+  {
+    "name": "Gamma",
+    "tagline": "A new medium for presenting ideas",
+    "website": "https://gamma.app",
+    "description": "AI-generated presentations and documents for business teams.",
+    "upvotes": 870,
+    "source": "producthunt"
+  },
+  {
+    "name": "Copy.ai",
+    "website": "https://copy.ai",
+    "description": "AI writing platform for marketing and sales copy.",
+    "funding_stage": "series-a",
+    "employee_count": "50-200",
+    "location": "San Francisco, CA",
+    "source": "crunchbase"
+  },
+  {
+    "name": "Jasper",
+    "website": "https://jasper.ai",
+    "description": "Enterprise AI content platform for marketing teams.",
+    "funding_stage": "series-a",
+    "employee_count": "200-500",
+    "location": "Austin, TX",
+    "source": "crunchbase"
+  },
+  {
+    "name": "Writesonic",
+    "website": "https://writesonic.com",
+    "description": "AI writer and SEO tool for content marketing teams.",
+    "funding_stage": "seed",
+    "employee_count": "10-50",
+    "location": "San Francisco, CA",
+    "source": "crunchbase"
+  },
+  {
+    "name": "Clearbit",
+    "website": "https://clearbit.com",
+    "description": "B2B data enrichment and lead intelligence platform.",
+    "role": "Head of Marketing",
+    "location": "Remote",
+    "source": "hn_hiring"
+  },
+  {
+    "name": "Apollo.io",
+    "website": "https://apollo.io",
+    "description": "Sales intelligence and engagement platform for B2B teams.",
+    "role": "VP of Marketing",
+    "location": "San Francisco, CA",
+    "source": "hn_hiring"
+  },
+  {
+    "name": "beautiful-docs",
+    "owner": "PhilippeSigaud",
+    "website": "https://github.com/PhilippeSigaud/beautiful-docs",
+    "description": "A collection of pointers to documentation for open source projects.",
+    "stars": 2400,
+    "language": "Markdown",
+    "source": "github"
+  },
+  {
+    "name": "markprompt",
+    "owner": "motifland",
+    "website": "https://github.com/motifland/markprompt",
+    "description": "AI-powered chatbot for documentation and customer support.",
+    "stars": 3100,
+    "language": "TypeScript",
+    "source": "github"
+  }
+]
