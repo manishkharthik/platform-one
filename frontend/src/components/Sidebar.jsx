@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Package, Megaphone, BarChart2, Settings, HelpCircle, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, Megaphone, Settings, HelpCircle, LogOut } from "lucide-react";
 
 export default function Sidebar() {
   const navigate = useNavigate();
@@ -8,7 +8,6 @@ export default function Sidebar() {
     { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { to: "/products", icon: Package, label: "Products" },
     { to: "/campaigns", icon: Megaphone, label: "Campaigns" },
-    { to: "/analytics", icon: BarChart2, label: "Analytics" },
     { to: "/settings", icon: Settings, label: "Settings" },
   ];
 

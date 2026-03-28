@@ -65,19 +65,27 @@ async def run_discovery_pipeline(campaign: Campaign, db):
     for task in plan:
         await emit(cid, f"   → {task['source']}: {task['url']}")
 
-    # Run scrapers sequentially — emit after each so the SSE stream stays alive
+    # Run all scrapers simultaneously
     raw_leads = []
-    for task in plan:
-        source = task["source"]
-        await emit(cid, f"🌐 Scraping {source}...")
+    await emit(cid, f"⚡ Running all {len(plan)} sources simultaneously...")
+
+    async def scrape_task(task):
         try:
             result = await run_tinyfish_task(task["url"], task["goal"])
-            await emit(cid, f"✅ {source}: found {len(result)} companies")
             for r in result:
-                r.setdefault("source", source)
-            raw_leads.extend(result)
+                r.setdefault("source", task["source"])
+            return task["source"], result, None
         except Exception as e:
-            await emit(cid, f"⚠️ {source} scrape failed: {str(e)[:80]}")
+            return task["source"], [], str(e)
+
+    all_results = await asyncio.gather(*[scrape_task(t) for t in plan])
+
+    for source, results, error in all_results:
+        if error:
+            await emit(cid, f"⚠️ {source} failed: {error[:80]}")
+        else:
+            await emit(cid, f"✅ {source}: found {len(results)} companies")
+            raw_leads.extend(results)
 
     # Fallback to mock data if all scrapers failed
     if not raw_leads:
