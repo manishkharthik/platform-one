@@ -1,13 +1,12 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Megaphone, BarChart2, Settings, HelpCircle, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, Megaphone, BarChart2, Settings, HelpCircle, LogOut } from "lucide-react";
 
-export default function Sidebar({ unreadCount = 0 }) {
-  const product = JSON.parse(localStorage.getItem("fishhook_product") || "{}");
+export default function Sidebar() {
   const navigate = useNavigate();
 
   const navItems = [
     { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { to: "/leads", icon: Users, label: "Leads" },
+    { to: "/products", icon: Package, label: "Products" },
     { to: "/campaigns", icon: Megaphone, label: "Campaigns" },
     { to: "/analytics", icon: BarChart2, label: "Analytics" },
     { to: "/settings", icon: Settings, label: "Settings" },
@@ -45,11 +44,6 @@ export default function Sidebar({ unreadCount = 0 }) {
           >
             <Icon size={16} />
             <span>{label}</span>
-            {label === "Leads" && unreadCount > 0 && (
-              <span className="ml-auto bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                {unreadCount}
-              </span>
-            )}
           </NavLink>
         ))}
       </nav>

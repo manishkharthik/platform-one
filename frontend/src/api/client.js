@@ -20,6 +20,14 @@ export const api = {
     }).then(json),
   getProduct: (id) => fetch(`${BASE}/api/products/${id}`).then(json),
   listProducts: () => fetch(`${BASE}/api/products`).then(json),
+  updateProduct: (id, data) =>
+    fetch(`${BASE}/api/products/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }).then(json),
+  deleteProduct: (id) =>
+    fetch(`${BASE}/api/products/${id}`, { method: "DELETE" }).then(json),
 
   // Campaigns
   createCampaign: (data) =>
