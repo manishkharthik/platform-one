@@ -9,6 +9,7 @@ import LeadsPage from "./pages/LeadsPage";
 import Inbox from "./pages/Inbox";
 import ProductsPage from "./pages/ProductsPage";
 import Settings from "./pages/Settings";
+import CampaignsPage from "./pages/CampaignsPage";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/products/new" element={<AddProduct />} />
         <Route path="/confirm-icp" element={<ConfirmICP />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/campaigns" element={<CampaignsPage />} />
         <Route path="/campaigns/new" element={<CreateCampaign />} />
         <Route path="/campaigns/:campaignId/feed" element={<AgentFeed />} />
         <Route path="/campaigns/:campaignId/leads" element={<LeadsPage />} />
