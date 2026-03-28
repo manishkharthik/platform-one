@@ -5,7 +5,7 @@ from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
-NUM_SOURCES = 6
+MAX_SOURCES = 500
 
 
 def get_client():
@@ -177,7 +177,7 @@ async def generate_scraping_plan(campaign, product) -> list[dict]:
                 {
                     "role": "user",
                     "content": f"""
-Analyze this product ICP and campaign criteria, then generate {NUM_SOURCES} web scraping tasks to find the best-fit leads WITH contact emails.
+Analyze this product ICP and campaign criteria. Generate as many web scraping tasks as are genuinely useful to find the best-fit leads WITH contact emails — up to {MAX_SOURCES} tasks. Do not stop at an arbitrary number. If there are 20 relevant URLs across different sources, generate 20. If there are 50, generate 50. More is better as long as each task is targeted and relevant.
 
 --- PRODUCT ICP ---
 {icp_context}
@@ -189,24 +189,25 @@ Analyze this product ICP and campaign criteria, then generate {NUM_SOURCES} web 
 {SOURCES_REFERENCE}
 
 Your task:
-1. REASON about which sources best match this ICP. Consider:
-   - Where do these types of companies get discovered? (funding news, product launches, job boards)
-   - Where can we find contact emails for the target job titles?
-   - Which geography/industry filters can be applied at the URL level?
+1. REASON about every possible place on the web where these buyers could be found. Think about:
+   - Every relevant job board, directory, review site, news source, community
+   - Multiple search angles on the same source (e.g. LinkedIn by industry AND by job title AND by company keyword)
+   - Where contact emails are most likely to be exposed
+   - Geography-specific sources if geography is specified
+   - Competitor-specific sources (e.g. G2 reviews for each competitor)
 
-2. For each of the {NUM_SOURCES} tasks:
-   - Build the most precise starting URL possible (use filters, search params, category slugs)
-   - Write a TinyFish goal that:
-     * Describes exactly what type of company to find (be specific about industry, size, stage, signals)
-     * Explicitly asks to extract contact email addresses wherever visible
-     * Asks for 6-10 results
-     * Ends with: "Return a list of items with fields: [list the exact fields to extract]."
+2. For EVERY task you generate:
+   - Build the most precise starting URL possible using filters, search params, category slugs, keywords
+   - Write a specific TinyFish goal that names the exact company type, extracts contact emails wherever visible, and requests 6-10 results
+   - End every goal with: "Return a list of items with fields: [exact fields]."
 
-3. Prioritize sources that expose contact emails (Apollo, Hunter, LinkedIn profiles, GitHub bios, ProductHunt maker pages).
+3. You can and should generate multiple tasks for the same source with different angles (e.g. LinkedIn search by industry, LinkedIn search by job title, LinkedIn search by company keyword — these are 3 separate tasks).
+
+4. Be exhaustive. Cover: job boards, funding databases, product directories, review sites, communities, news, social, email-discovery tools.
 
 Return this exact JSON:
 {{
-  "reasoning": "2-3 sentences explaining your source selection strategy",
+  "reasoning": "2-3 sentences explaining your overall strategy and how many tasks you generated",
   "tasks": [
     {{"url": "https://...", "goal": "...", "source": "source_label"}},
     ...
