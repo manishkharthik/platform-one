@@ -49,7 +49,7 @@ export default function ConfirmICP() {
         </button>
         <div className="flex items-center gap-2">
           <span className="text-xl">🪝</span>
-          <span className="font-bold text-gray-900">Fishhook</span>
+          <span className="font-bold text-gray-900">FishHook</span>
         </div>
       </div>
 

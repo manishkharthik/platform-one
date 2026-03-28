@@ -81,7 +81,7 @@ export default function AgentFeed() {
       {/* Header */}
       <header className="flex items-center justify-between px-8 py-4">
         <div className="flex items-center gap-2">
-          <span className="text-white font-bold text-base">🪝 Fishhook</span>
+          <span className="text-white font-bold text-base">🪝 FishHook</span>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 px-3 py-1 bg-green-500/10 border border-green-500/30 rounded-full">

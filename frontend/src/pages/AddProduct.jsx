@@ -62,7 +62,7 @@ export default function AddProduct() {
         </button>
         <div className="flex items-center gap-2">
           <span className="text-xl">🪝</span>
-          <span className="font-bold text-gray-900 text-base">Fishhook</span>
+          <span className="font-bold text-gray-900 text-base">FishHook</span>
         </div>
       </div>
 
